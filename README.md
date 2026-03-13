@@ -72,46 +72,18 @@ The system supports a full **E-commerce workflow**, including product management
 ```
 project-root
 │
-├── backend
+├── server
 │   ├── controllers
-│   │     ├── authController.js
-│   │     ├── productController.js
-│   │     └── orderController.js
-│   │
 │   ├── models
-│   │     ├── User.js
-│   │     ├── Product.js
-│   │     ├── Cart.js
-│   │     └── Order.js
-│   │
 │   ├── routes
-│   │     ├── authRoutes.js
-│   │     ├── productRoutes.js
-│   │     └── orderRoutes.js
-│   │
 │   ├── middleware
-│   │     ├── authMiddleware.js
-│   │     ├── roleMiddleware.js
-│   │     └── uploadMiddleware.js
-│   │
 │   ├── services
-│   │     ├── emailService.js
-│   │     ├── invoiceService.js
-│   │     └── orderService.js
-│   │
 │   ├── utils
-│   │     ├── generateToken.js
-│   │     └── errorHandler.js
-│   │
 │   ├── config
-│   │     └── db.js
-│   │
 │   ├── uploads
-│   │
-│   ├── app.js
 │   └── server.js
 │
-├── frontend
+├── client
 │   ├── src
 │   │   ├── components
 │   │   ├── pages
