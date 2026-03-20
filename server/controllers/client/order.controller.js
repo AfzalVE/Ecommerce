@@ -25,15 +25,29 @@ export const createOrder = async (req, res) => {
 // GET MY ORDERS
 // ==============================
 
+// controllers/order.controller.js
 export const getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({
-      user: req.user._id,
-    }).sort({ createdAt: -1 });
+    // page and limit from query, default to page 1, 10 orders per page
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const skip = (page - 1) * limit;
+
+    const orders = await Order.find({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalOrders = await Order.countDocuments({ user: req.user._id });
+    const totalPages = Math.ceil(totalOrders / limit);
 
     res.json({
       success: true,
       orders,
+      page,
+      totalPages,
+      totalOrders,
     });
   } catch (error) {
     res.status(500).json({
@@ -41,7 +55,6 @@ export const getMyOrders = async (req, res) => {
     });
   }
 };
-
 // ==============================
 // GET ORDER BY ID (USER)
 // ==============================

@@ -4,6 +4,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import Dashboard from "../admin/pages/Dashboard";
 import AddEditProduct from "../admin/pages/AddEditProduct";
 import AddEditCategory from "../modules/categories/AddEditCategory";
+import Order from "../admin/pages/Order";
 
 export default function AdminRoutes() {
   return (
@@ -20,11 +21,12 @@ export default function AdminRoutes() {
 
         {/* CATEGORIES */}
         <Route path="categories">
-          <Route index element={<AddEditCategory />} /> {/* list page */}
+          <Route index element={<AddEditCategory />} /> 
           <Route path="add" element={<AddEditCategory />} />
           <Route path="edit/:id" element={<AddEditCategory />} />
         </Route>
-
+        {/* ORDERS */}
+        <Route path="orders" element={<Order />} />
       </Route>
     </Routes>
   );

@@ -9,29 +9,28 @@ export const adminOrderApi = createApi({
     credentials: "include",
     prepareHeaders: (headers, { getState }) => {
       const token = getState().auth.token;
-
-      if (token) {
-        headers.set("authorization", `Bearer ${token}`);
-      }
-
+      if (token) headers.set("authorization", `Bearer ${token}`);
       return headers;
-    }
+    },
   }),
 
   tagTypes: ["Orders"],
 
   endpoints: (builder) => ({
-
     /* =========================
-       📦 GET ALL ORDERS
+       📦 GET ORDERS (with search & filters)
     ========================== */
     getAllOrders: builder.query({
-      query: (params) => {
-        // supports filters later
-        const queryString = new URLSearchParams(params).toString();
-        return `/admin/orders?${queryString}`;
+      query: ({ page = 1, limit = 10, search = "", orderStatus = "", paymentStatus = "" }) => {
+        const params = new URLSearchParams();
+        params.set("page", page);
+        params.set("limit", limit);
+        if (search) params.set("search", search);
+        if (orderStatus) params.set("orderStatus", orderStatus);
+        if (paymentStatus) params.set("paymentStatus", paymentStatus);
+        return `/admin/orders?${params.toString()}`;
       },
-      providesTags: ["Orders"]
+      providesTags: ["Orders"],
     }),
 
     /* =========================
@@ -48,9 +47,9 @@ export const adminOrderApi = createApi({
       query: ({ id, status }) => ({
         url: `/admin/orders/${id}/status`,
         method: "PATCH",
-        body: { status }
+        body: { status },
       }),
-      invalidatesTags: ["Orders"]
+      invalidatesTags: ["Orders"],
     }),
 
     /* =========================
@@ -60,9 +59,9 @@ export const adminOrderApi = createApi({
       query: ({ id, paymentStatus }) => ({
         url: `/admin/orders/${id}/payment`,
         method: "PATCH",
-        body: { paymentStatus }
+        body: { paymentStatus },
       }),
-      invalidatesTags: ["Orders"]
+      invalidatesTags: ["Orders"],
     }),
 
     /* =========================
@@ -71,9 +70,9 @@ export const adminOrderApi = createApi({
     cancelOrder: builder.mutation({
       query: (id) => ({
         url: `/admin/orders/${id}/cancel`,
-        method: "PATCH"
+        method: "PATCH",
       }),
-      invalidatesTags: ["Orders"]
+      invalidatesTags: ["Orders"],
     }),
 
     /* =========================
@@ -82,22 +81,21 @@ export const adminOrderApi = createApi({
     downloadInvoice: builder.query({
       query: (id) => ({
         url: `/admin/orders/${id}/invoice`,
-        responseHandler: (response) => response.blob()
-      })
+        responseHandler: (response) => response.blob(),
+      }),
     }),
 
     /* =========================
-       🗑 DELETE ORDER (optional)
+       🗑 DELETE ORDER
     ========================== */
     deleteOrder: builder.mutation({
       query: (id) => ({
         url: `/admin/orders/${id}`,
-        method: "DELETE"
+        method: "DELETE",
       }),
-      invalidatesTags: ["Orders"]
+      invalidatesTags: ["Orders"],
     }),
-
-  })
+  }),
 });
 
 export const {
@@ -107,5 +105,5 @@ export const {
   useUpdatePaymentStatusMutation,
   useCancelOrderMutation,
   useDownloadInvoiceQuery,
-  useDeleteOrderMutation
+  useDeleteOrderMutation,
 } = adminOrderApi;

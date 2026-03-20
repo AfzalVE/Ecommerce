@@ -17,10 +17,8 @@ function Layout() {
     "/reset-password"
   ];
 
-  const isAdminRoute = location.pathname.startsWith("/admin");
-
-  const hideNavbar = authPages.includes(location.pathname) || isAdminRoute;
-  const hideFooter = authPages.includes(location.pathname) || isAdminRoute;
+  const hideNavbar = authPages.includes(location.pathname); // only hide on auth pages
+  const hideFooter = authPages.includes(location.pathname); // only hide on auth pages
 
   return (
     <div className="min-h-screen flex flex-col">
