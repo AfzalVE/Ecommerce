@@ -12,28 +12,37 @@ import {
 
 export default function AddEditCategory() {
 
-  const { data } = useGetCategoriesQuery();
+  const { data, isLoading } = useGetCategoriesQuery();
 
   const [createCategory] = useCreateCategoryMutation();
   const [updateCategory] = useUpdateCategoryMutation();
-  const [deleteCategory] = useDeleteCategoryMutation();
+  const [deleteCategory, { isLoading: deleting }] = useDeleteCategoryMutation();
 
   const categories = data?.categories || [];
 
-  const [name,setName] = useState("");
-  const [description,setDescription] = useState("");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [editing, setEditing] = useState(null);
 
-  const [editing,setEditing] = useState(null);
+  /* RESET FORM */
+
+  const resetForm = () => {
+    setName("");
+    setDescription("");
+    setEditing(null);
+  };
 
   /* SUBMIT */
 
-  const handleSubmit = async(e)=>{
+  const handleSubmit = async (e) => {
 
     e.preventDefault();
 
-    try{
+    if (!name.trim()) return;
 
-      if(editing){
+    try {
+
+      if (editing) {
 
         await updateCategory({
           id: editing,
@@ -41,7 +50,7 @@ export default function AddEditCategory() {
           description
         }).unwrap();
 
-      }else{
+      } else {
 
         await createCategory({
           name,
@@ -50,13 +59,11 @@ export default function AddEditCategory() {
 
       }
 
-      setName("");
-      setDescription("");
-      setEditing(null);
+      resetForm();
 
-    }catch(err){
+    } catch (err) {
 
-      console.error(err);
+      console.error("Category error:", err);
 
     }
 
@@ -64,7 +71,7 @@ export default function AddEditCategory() {
 
   /* EDIT */
 
-  const handleEdit = (cat)=>{
+  const handleEdit = (cat) => {
 
     setEditing(cat._id);
     setName(cat.name);
@@ -74,23 +81,33 @@ export default function AddEditCategory() {
 
   /* DELETE */
 
-  const handleDelete = async(id)=>{
+  const handleDelete = async (id) => {
 
-    if(!confirm("Delete category?")) return;
+    const confirmDelete = window.confirm("Are you sure you want to delete this category?");
+    if (!confirmDelete) return;
 
-    try{
+    try {
 
       await deleteCategory(id).unwrap();
 
-    }catch(err){
+      // If deleted category was being edited
+      if (editing === id) {
+        resetForm();
+      }
 
-      console.error(err);
+    } catch (err) {
+
+      console.error("Delete failed:", err);
 
     }
 
   };
 
-  return(
+  if (isLoading) {
+    return <p className="text-center py-10">Loading categories...</p>;
+  }
+
+  return (
 
     <PageContainer>
 
@@ -110,14 +127,14 @@ export default function AddEditCategory() {
           <Input
             label="Category Name"
             value={name}
-            onChange={(e)=>setName(e.target.value)}
+            onChange={(e) => setName(e.target.value)}
           />
 
           <textarea
             placeholder="Description"
             className="border rounded-lg p-3 w-full"
             value={description}
-            onChange={(e)=>setDescription(e.target.value)}
+            onChange={(e) => setDescription(e.target.value)}
           />
 
           <Button type="submit">
@@ -126,15 +143,27 @@ export default function AddEditCategory() {
 
           </Button>
 
+          {editing && (
+
+            <Button
+              type="button"
+              className="ml-2 bg-gray-400"
+              onClick={resetForm}
+            >
+              Cancel
+            </Button>
+
+          )}
+
         </form>
 
         {/* CATEGORY TABLE */}
 
-        <div className="bg-white shadow rounded-xl">
+        <div className="bg-white shadow rounded-xl overflow-hidden">
 
           <table className="w-full">
 
-            <thead className="border-b">
+            <thead className="border-b bg-gray-50">
 
               <tr className="text-left">
 
@@ -148,36 +177,52 @@ export default function AddEditCategory() {
 
             <tbody>
 
-              {categories.map((cat)=>(
+              {categories.length === 0 && (
+
+                <tr>
+
+                  <td
+                    colSpan="3"
+                    className="text-center py-6 text-gray-500"
+                  >
+                    No categories found
+                  </td>
+
+                </tr>
+
+              )}
+
+              {categories.map((cat) => (
 
                 <tr
                   key={cat._id}
-                  className="border-b"
+                  className="border-b hover:bg-gray-50"
                 >
 
-                  <td className="p-4">
+                  <td className="p-4 font-medium">
                     {cat.name}
                   </td>
 
                   <td>
-                    {cat.description}
+                    {cat.description || "-"}
                   </td>
 
                   <td className="text-right p-4 space-x-2">
 
                     <Button
                       type="button"
-                      onClick={()=>handleEdit(cat)}
+                      onClick={() => handleEdit(cat)}
                     >
                       Edit
                     </Button>
 
                     <Button
                       type="button"
-                      className="bg-red-500"
-                      onClick={()=>handleDelete(cat._id)}
+                      className="bg-red-500 hover:bg-red-600"
+                      onClick={() => handleDelete(cat._id)}
+                      disabled={deleting}
                     >
-                      Delete
+                      {deleting ? "Deleting..." : "Delete"}
                     </Button>
 
                   </td>

@@ -1,18 +1,20 @@
 import express from "express";
 
+
 import {
  createReview,
  getReviewsByProduct,
  updateReview,
  deleteReview
 } from "../controllers/review.controller.js";
+import { protect } from "../middleware/auth.middleware.js";
 
 
 const router = express.Router();
 
 /* Create review */
 
-router.post("/",  createReview);
+router.post("/",protect,  createReview);
 
 /* Get reviews for a product */
 

@@ -8,7 +8,6 @@ export const productApi = createApi({
     baseUrl: API_URL,
     credentials: "include",
     prepareHeaders: (headers, { getState }) => {
-
       const token = getState().auth.token;
 
       if (token) {
@@ -29,11 +28,28 @@ export const productApi = createApi({
       })
     }),
 
+    updateProduct: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `/products/${id}`,
+        method: "PUT", 
+        body: data
+      }),
+    }),
+
     getProducts: builder.query({
       query: () => "/products"
     }),
+
     getProductById: builder.query({
       query: (id) => `/products/${id}`
+    }),
+
+    deleteProduct: builder.mutation({
+      query: (id) => ({
+        url: `/products/${id}`,
+        method: "DELETE"
+      }),
+      invalidatesTags: ["Products"]
     }),
 
   })
@@ -41,6 +57,8 @@ export const productApi = createApi({
 
 export const {
   useCreateProductMutation,
+  useUpdateProductMutation,  
   useGetProductByIdQuery,
-  useGetProductsQuery
+  useGetProductsQuery,
+  useDeleteProductMutation
 } = productApi;

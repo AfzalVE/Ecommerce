@@ -1,9 +1,48 @@
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useDeleteProductMutation } from "./productApi";
+import { API_URL } from "../../utils/constants";
 
 export default function ProductList({ products }) {
-  console.log("Rendering ProductList with products:", products);
 
   const navigate = useNavigate();
+  const [deleteProduct] = useDeleteProductMutation();
+
+  /* ✅ SAFE IMAGE FINDER */
+  const getProductImage = (product) => {
+    console.log("Finding image for product:", product);
+
+    if (!product?.variants) return null;
+
+    for (let variant of product.variants) {
+      console.log("Checking variant:", variant);
+      if (variant?.images && variant.images.length > 0) {
+        return `${API_URL}${variant.images[0].url}`;
+      }
+    }
+
+    return null;
+  };
+
+  /* ✅ TOTAL STOCK */
+  const getTotalStock = (product) => {
+    return (product.variants || []).reduce(
+      (total, v) => total + (Number(v.stock) || 0),
+      0
+    );
+  };
+
+  const handleDelete = async (id) => {
+
+    if (!window.confirm("Delete this product?")) return;
+
+    try {
+      await deleteProduct(id).unwrap();
+      toast.success("Product deleted");
+    } catch (error) {
+      toast.error("Failed to delete");
+    }
+  };
 
   return (
 
@@ -14,66 +53,91 @@ export default function ProductList({ products }) {
         <thead className="bg-gray-100">
 
           <tr className="text-left">
-
             <th className="p-4">Image</th>
             <th className="p-4">Title</th>
             <th className="p-4">Category</th>
             <th className="p-4">Variants</th>
+            <th className="p-4">Stock</th>
             <th className="p-4">Actions</th>
-
           </tr>
 
         </thead>
 
         <tbody>
 
-          {products.map((product) => (
+          {products.map((product) => {
 
-            <tr
-              key={product._id}
-              className="border-t hover:bg-gray-50"
-            >
+            const image = getProductImage(product);
+            const totalStock = getTotalStock(product);
 
-              <td className="p-4">
+            return (
 
-                <img
-                  src={`http://localhost:5000${product.variants?.[0]?.images?.[0]?.url}`}
-                  className="w-14 h-14 object-cover rounded"
-                />
+              <tr
+                key={product._id}
+                className="border-t hover:bg-gray-50"
+              >
 
-              </td>
+                {/* IMAGE */}
+                <td className="p-4">
 
-              <td className="p-4 font-medium">
-                {product.title}
-              </td>
+                  <img
+                    src={image || "/placeholder.png"}
+                    alt={product.title}
+                    className="w-14 h-14 object-cover rounded"
+                  />
 
-              <td className="p-4">
-                {product.category?.name || "Uncategorized"}
-              </td>
+                </td>
 
-              <td className="p-4">
-                {product.variants?.length}
-              </td>
+                {/* TITLE */}
+                <td className="p-4 font-medium">
+                  {product.title}
+                </td>
 
-              <td className="p-4">
+                {/* CATEGORY */}
+                <td className="p-4">
+                  {product.category?.name || "Uncategorized"}
+                </td>
 
-                <button
-                  onClick={() => navigate(`/edit-product/${product._id}`)}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
-                >
-                  Edit
-                </button>
+                {/* VARIANTS */}
+                <td className="p-4">
+                  {product.variants?.length || 0}
+                </td>
 
-              </td>
+                {/* ✅ TOTAL STOCK */}
+                <td className="p-4">
+                  {totalStock}
+                </td>
 
-            </tr>
+                {/* ACTIONS */}
+                <td className="p-4 flex gap-2">
 
-          ))}
+                  <button
+                    onClick={() => navigate(`/edit-product/${product._id}`)}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(product._id)}
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+
+                </td>
+
+              </tr>
+
+            );
+
+          })}
 
         </tbody>
 
       </table>
 
     </div>
+
   );
 }

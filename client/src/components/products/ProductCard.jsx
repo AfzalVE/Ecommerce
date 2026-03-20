@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { API_URL } from "../../utils/constants";
 
 export default function ProductCard({ product }){
 
@@ -12,7 +13,7 @@ export default function ProductCard({ product }){
   >
 
    <img
-    src={`http://localhost:5000${image}`}
+    src={`${API_URL}${image}`}
     className="w-full h-48 object-cover rounded"
    />
 

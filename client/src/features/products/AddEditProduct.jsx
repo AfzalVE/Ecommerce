@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 import PageContainer from "../../components/layout/PageContainer";
 import Input from "../../components/ui/Input";
@@ -7,61 +8,78 @@ import Button from "../../components/ui/Button";
 
 import {
   useCreateProductMutation,
-  useGetProductsQuery,
+  useUpdateProductMutation,
   useGetProductByIdQuery
 } from "./productApi";
 
 import { useGetCategoriesQuery } from "../categories/categoryApi";
+import { API_URL } from "../../utils/constants";
 
 export default function AddEditProduct() {
 
   const { id } = useParams();
+  const navigate = useNavigate();
 
-  const { data } = useGetProductByIdQuery(id, { skip: !id });
+  const { data, isLoading } = useGetProductByIdQuery(id, { skip: !id });
   const { data: categoryData } = useGetCategoriesQuery();
 
   const product = data?.product;
   const categories = categoryData?.categories || [];
 
   const [createProduct] = useCreateProductMutation();
+  const [updateProduct] = useUpdateProductMutation();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
-
   const [variants, setVariants] = useState([]);
 
-  /* Prefill edit */
+  /* ================= PREFILL ================= */
 
   useEffect(() => {
+    if (product && id) {
 
-    if (product) {
+      setTitle(product.title || "");
+      setDescription(product.description || "");
+      setCategory(product.category?._id || product.category || "");
 
-      setTitle(product.title);
-      setDescription(product.description);
-      setCategory(product.category?._id || product.category);
+      const formatted = (product.variants || []).map(v => {
 
-      const formatted = (product.variants || []).map(v => ({
-        ...v,
-        images: (v.images || []).map(img => ({
+        const existingImages = (v.images || []).map(img => ({
           url: img.url,
-          preview: `http://localhost:5000${img.url}`,
+          preview: `${API_URL}${img.url}`,
           file: null
-        }))
-      }));
+        }));
 
-      setVariants(formatted);
+        return {
+          ...v,
+          images: [
+            ...existingImages,
+            { file: null, preview: "" } // ✅ always add upload slot
+          ]
+        };
+      });
+
+      setVariants(
+        formatted.length
+          ? formatted
+          : [{
+              color: "",
+              size: "",
+              sku: "",
+              price: "",
+              stock: "",
+              images: [{ file: null, preview: "" }]
+            }]
+      );
     }
+  }, [product, id]);
 
-  }, [product]);
-
-  console.log(product)
-  /* Add Variant */
+  /* ================= VARIANTS ================= */
 
   const addVariant = () => {
-
-    setVariants([
-      ...variants,
+    setVariants(prev => [
+      ...prev,
       {
         color: "",
         size: "",
@@ -73,98 +91,84 @@ export default function AddEditProduct() {
     ]);
   };
 
-  /* Remove Variant */
-
   const removeVariant = (index) => {
-
-    const updated = [...variants];
-    updated.splice(index, 1);
-    setVariants(updated);
-
+    setVariants(prev => prev.filter((_, i) => i !== index));
   };
-
-  /* Update Variant */
 
   const updateVariant = (index, field, value) => {
+    setVariants(prev => {
+      const updated = [...prev];
+      updated[index][field] = value;
 
-    const updated = [...variants];
-    updated[index][field] = value;
+      const color = field === "color" ? value : updated[index].color;
+      const size = field === "size" ? value : updated[index].size;
 
-    const color = field === "color" ? value : updated[index].color;
-    const size = field === "size" ? value : updated[index].size;
+      updated[index].sku =
+        `${title}-${color}-${size}`
+          .replace(/\s+/g, "-")
+          .toUpperCase();
 
-    updated[index].sku =
-      `${title}-${color}-${size}`
-        .replace(/\s+/g, "-")
-        .toUpperCase();
-
-    setVariants(updated);
+      return updated;
+    });
   };
-
-  /* Update SKU if title changes */
 
   useEffect(() => {
+    if (!variants.length) return;
 
-    const updated = variants.map(v => ({
-      ...v,
-      sku: `${title}-${v.color}-${v.size}`
-        .replace(/\s+/g, "-")
-        .toUpperCase()
-    }));
-
-    setVariants(updated);
-
+    setVariants(prev =>
+      prev.map(v => ({
+        ...v,
+        sku: `${title}-${v.color}-${v.size}`
+          .replace(/\s+/g, "-")
+          .toUpperCase()
+      }))
+    );
   }, [title]);
 
-  /* Upload Image */
+  /* ================= IMAGES ================= */
 
   const handleImageUpload = (variantIndex, imageIndex, file) => {
-
     if (!file) return;
 
-    const updated = [...variants];
+    setVariants(prev => {
+      const updated = [...prev];
 
-    updated[variantIndex].images[imageIndex] = {
-      file,
-      preview: URL.createObjectURL(file)
-    };
+      updated[variantIndex].images[imageIndex] = {
+        file,
+        preview: URL.createObjectURL(file)
+      };
 
-    if (imageIndex === updated[variantIndex].images.length - 1) {
+      const images = updated[variantIndex].images;
 
-      updated[variantIndex].images.push({
-        file: null,
-        preview: ""
-      });
+      // ✅ always keep one empty input at end
+      if (images[images.length - 1]?.file) {
+        images.push({ file: null, preview: "" });
+      }
 
-    }
-
-    setVariants(updated);
+      return updated;
+    });
   };
-
-  /* Delete Image */
 
   const deleteImage = (variantIndex, imageIndex) => {
+    setVariants(prev => {
+      const updated = [...prev];
 
-    const updated = [...variants];
+      updated[variantIndex].images.splice(imageIndex, 1);
 
-    updated[variantIndex].images.splice(imageIndex, 1);
+      if (updated[variantIndex].images.length === 0) {
+        updated[variantIndex].images.push({
+          file: null,
+          preview: ""
+        });
+      }
 
-    if (updated[variantIndex].images.length === 0) {
-
-      updated[variantIndex].images.push({
-        file: null,
-        preview: ""
-      });
-
-    }
-
-    setVariants(updated);
+      return updated;
+    });
   };
 
-  /* Submit */
+  /* ================= SUBMIT ================= */
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
 
     const formData = new FormData();
@@ -187,33 +191,34 @@ export default function AddEditProduct() {
     );
 
     variants.forEach((variant, i) => {
-
       variant.images.forEach(img => {
-
         if (img.file) {
           formData.append(`variantImages_${i}`, img.file);
         }
-
       });
-
     });
 
     try {
+      if (id) {
+        await updateProduct({ id, data: formData }).unwrap();
+      } else {
+        await createProduct(formData).unwrap();
+      }
 
-      await createProduct(formData).unwrap();
-
-      alert(id ? "Product Updated" : "Product Created");
+      toast.success(id ? "Product Updated" : "Product Created");
+      navigate("/dashboard");
 
     } catch (err) {
-
       console.error(err);
-
+      toast.error("Something went wrong");
     }
-
   };
 
-  return (
+  if (id && isLoading) return null;
 
+  /* ================= UI ================= */
+
+  return (
     <PageContainer>
 
       <div className="max-w-5xl mx-auto">
@@ -238,7 +243,6 @@ export default function AddEditProduct() {
             />
 
             <div>
-
               <label className="block mb-1 font-medium">
                 Category
               </label>
@@ -248,22 +252,14 @@ export default function AddEditProduct() {
                 value={category}
                 onChange={e => setCategory(e.target.value)}
               >
-
-                <option value="">
-                  Select Category
-                </option>
+                <option value="">Select Category</option>
 
                 {categories.map(cat => (
-                  <option
-                    key={cat._id}
-                    value={cat._id}
-                  >
+                  <option key={cat._id} value={cat._id}>
                     {cat.name}
                   </option>
                 ))}
-
               </select>
-
             </div>
 
           </div>
@@ -308,11 +304,7 @@ export default function AddEditProduct() {
                     }
                   />
 
-                  <Input
-                    label="SKU"
-                    value={variant.sku}
-                    readOnly
-                  />
+                  <Input label="SKU" value={variant.sku} readOnly />
 
                   <Input
                     label="Price"
@@ -360,9 +352,7 @@ export default function AddEditProduct() {
                       />
 
                       {img.preview && (
-
                         <div className="relative">
-
                           <img
                             src={img.preview}
                             alt="preview"
@@ -376,9 +366,7 @@ export default function AddEditProduct() {
                           >
                             X
                           </button>
-
                         </div>
-
                       )}
 
                     </div>
@@ -399,19 +387,13 @@ export default function AddEditProduct() {
 
             ))}
 
-            <Button
-              type="button"
-              onClick={addVariant}
-            >
+            <Button type="button" onClick={addVariant}>
               Add Variant
             </Button>
 
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-          >
+          <Button type="submit" className="w-full">
             {id ? "Update Product" : "Save Product"}
           </Button>
 
@@ -420,7 +402,5 @@ export default function AddEditProduct() {
       </div>
 
     </PageContainer>
-
   );
-
 }

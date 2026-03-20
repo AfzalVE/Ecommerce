@@ -15,6 +15,8 @@ import ProductPage from "../pages/ProductPage";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import CartPage from "../pages/CartPage";
+import CheckoutPage from "../pages/CheckoutPage";
+import OrdersPage from "../pages/OrdersPage";
 
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -53,7 +55,9 @@ function Layout() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-           <Route path="/cart" element={<CartPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/orders" element={<OrdersPage/>} />
 
           <Route path="/product/:slug/:id" element={<ProductPage />} />
 
@@ -63,7 +67,7 @@ function Layout() {
           <Route element={<ProtectedRoute />}>
 
             <Route path="/dashboard" element={<Dashboard />} />
-           
+
 
           </Route>
 

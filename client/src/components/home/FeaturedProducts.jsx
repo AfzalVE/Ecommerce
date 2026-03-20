@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useGetProductsQuery } from "../../features/products/productApi";
+import { API_URL } from "../../utils/constants";
 
 export default function FeaturedProducts() {
 
@@ -52,7 +53,7 @@ export default function FeaturedProducts() {
                   <img
                     src={
                       image
-                        ? `http://localhost:5000${image}`
+                        ? `${API_URL}${image}`
                         : "https://via.placeholder.com/400x300"
                     }
                     alt={product.title}

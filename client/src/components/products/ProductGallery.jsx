@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_URL } from "../../utils/constants";
 
 export default function ProductGallery({ variants }){
 
@@ -12,7 +13,7 @@ export default function ProductGallery({ variants }){
   <div className="space-y-4">
 
    <img
-    src={`http://localhost:5000${active}`}
+    src={`${API_URL}${active}`}
     className="w-full h-[500px] object-cover rounded-xl"
    />
 
@@ -21,7 +22,7 @@ export default function ProductGallery({ variants }){
     {images.map((img,i)=>(
      <img
       key={i}
-      src={`http://localhost:5000${img}`}
+      src={`${API_URL}${img}`}
       onClick={()=>setActive(img)}
       className="w-20 h-20 object-cover border rounded cursor-pointer hover:scale-105 transition"
      />

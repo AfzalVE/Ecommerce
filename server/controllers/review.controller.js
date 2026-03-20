@@ -5,10 +5,12 @@ import logger from "../utils/logger.js";
 /* Create Review */
 
 export const createReview = async (req, res) => {
+    console.log(req.body);
 
  try {
 
   const { productId, rating, comment } = req.body;
+
 
   const existingReview = await Review.findOne({
    user: req.user._id,

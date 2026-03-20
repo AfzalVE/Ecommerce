@@ -1,43 +1,42 @@
-# Cart Page Implementation TODO
+# Checkout & Orders Implementation TODO
 
-## Approved Plan Steps:
+## Backend
+- [x] 1. Create server/controllers/order.controller.js (createOrder from cart+address+payment, getUserOrders)
+- [x] 2. Create server/routes/order.routes.js (POST /orders, GET /orders protected)
+- [x] 3. Update server/server.js to mount `/api/orders` router
 
-### 1. **✅ Create cartApi.js** 
-   - `client/src/features/cart/cartApi.js` with RTK Query endpoints
+## Frontend RTK
+- [x] 4. Populate client/src/features/orders/orderApi.js (useGetUserOrdersQuery, useCreateOrderMutation)
 
-### 2. **✅ Create CartPage.jsx**
-   - `client/src/pages/CartPage.jsx` - UI with items table, qty +/-, remove, totals, empty state
+## Components
+- [x] 5. Created inline OrderCard in OrdersPage
+- [x] 6. Created inline forms in CheckoutPage
+- [x] 7. Edit client/src/components/cart/CartSummery.jsx (add Link to /checkout)
 
-### 3. **⏳ Update store.js**
-   - Add `[cartApi.reducerPath]: cartApi.reducer` & `cartApi.middleware`
+## Pages
+- [ ] 8. Enhance client/src/pages/CartPage.jsx (eye-catching UI)
+- [x] 9. Create client/src/pages/CheckoutPage.jsx (fully functional)
+- [x] 10. Create client/src/pages/OrdersPage.jsx (professional track/expand)
 
-### 4. **Update AppRouter.jsx** 
-   - Add `<Route path="/cart" element={<CartPage />} />` in ProtectedRoute
+## Routing & Navbar
+- [x] 11. Edit client/src/routes/AppRouter.jsx (added protected routes)
+- [ ] 12. Optional: Navbar cart count
 
-### 5. **Update Navbar.jsx**
-   - Add Cart NavLink with badge from useGetCartQuery
+## Integrations & Polish
+- [x] 13. Razorpay integrated in Checkout (use test key)
+- [ ] 14. UI polish
+- [x] 15. Cart clears on order (backend)
 
-### 6. **Test**
-   - `cd client && npm run dev`
-   - Login, visit /cart (empty until backend API)
+## Testing & Deps
+- [ ] Deps
+- [ ] Test flow
 
-# Cart Page ✅ COMPLETE
+## Integrations & Polish
+- [ ] 13. Integrate Razorpay in CheckoutPage (load script, handle checkout, COD flag)
+- [ ] 14. Add UI polish (animations, confetti success, responsive, professional theme)
+- [ ] 15. Clear cart on successful order (already in backend)
 
-## Implemented:
-- ✅ cartApi.js - RTK Query for cart operations
-- ✅ CartPage.jsx - Full UI (empty state, items list, qty update/remove/clear, totals)
-- ✅ store.js - Integrated cartApi reducer/middleware
-- ✅ AppRouter.jsx - `/cart` route (protected)
-- ✅ Navbar.jsx - Cart icon with badge placeholder
-
-## Status:
-- Frontend ready! Login -> Navbar cart icon -> /cart shows empty loader (no backend API yet)
-- API calls setup for future backend integration (`POST /api/cart`, etc.)
-
-## Test:
-```
-cd client && npm run dev
-```
-Visit http://localhost:5173/login -> login -> click cart icon -> /cart
-
-**Next**: Implement backend cart routes/controller OR add "Add to Cart" buttons in ProductList/ProductPage.jsx
+## Testing & Deps
+- [ ] Install server/client deps (razorpay)
+- [ ] Test full flow
+- [ ] npm run dev

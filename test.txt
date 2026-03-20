@@ -1,0 +1,278 @@
+ 
+{
+title: "Wireless Bluetooth Headphones",
+description: "Noise cancelling over-ear wireless headphones with 30hr battery.",
+category: "electronics",
+variants: [
+{
+color: "Black",
+size: "Standard",
+price: 129,
+stock: 50,
+images: [
+{ url: "https://images.unsplash.com/photo-1518443895914-6e7f6a7e5f70" }
+]
+},
+{
+color: "    ",
+size: "Standard",
+price: 129,
+stock: 40,
+images: [
+{ url: "https://images.unsplash.com/photo-1580894908361-967195033215" }
+]
+}
+]
+},
+ 
+{
+title: "Smart Fitness Watch",
+description: "Track heart rate, sleep, steps and workouts.",
+category: "electronics",
+variants: [
+{
+color: "Black",
+size: "42mm",
+price: 199,
+stock: 35,
+images: [
+{ url: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b" }
+]
+}
+]
+},
+ 
+{
+title: "Portable Bluetooth Speaker",
+description: "Waterproof portable speaker with deep bass.",
+category: "electronics",
+variants: [
+{
+color: "Blue",
+size: "Standard",
+price: 79,
+stock: 60,
+images: [
+{ url: "https://images.unsplash.com/photo-1585386959984-a41552231658" }
+]
+}
+]
+},
+ 
+{
+title: "Gaming Mechanical Keyboard",
+description: "RGB backlit mechanical keyboard for gaming.",
+category: "electronics",
+variants: [
+{
+color: "Black",
+size: "Full",
+price: 149,
+stock: 45,
+images: [
+{ url: "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef" }
+]
+}
+]
+},
+ 
+{
+title: "4K Ultra HD Webcam",
+description: "Crystal clear webcam for streaming and meetings.",
+category: "electronics",
+variants: [
+{
+color: "Black",
+size: "Standard",
+price: 99,
+stock: 50,
+images: [
+{ url: "https://images.unsplash.com/photo-1587829741301-dc798b83add3" }
+]
+}
+]
+},
+ 
+/* FASHION */
+ 
+{
+title: "Men Cotton Casual T-Shirt",
+description: "Soft breathable cotton t-shirt for everyday wear.",
+category: "fashion",
+variants: [
+{
+color: "Black",
+size: "M",
+price: 25,
+stock: 100,
+images: [
+{ url: "https://images.unsplash.com/photo-1520975922284-9e0ce82759c0" }
+]
+},
+{
+color: "White",
+size: "L",
+price: 25,
+stock: 80,
+images: [
+{ url: "https://images.unsplash.com/photo-1523381294911-8d3cead13475" }
+]
+}
+]
+},
+ 
+{
+title: "Women Summer Floral Dress",
+description: "Lightweight floral dress perfect for summer.",
+category: "fashion",
+variants: [
+{
+color: "Red",
+size: "S",
+price: 45,
+stock: 60,
+images: [
+{ url: "https://images.unsplash.com/photo-1520975661595-6453be3f7070" }
+]
+}
+]
+},
+ 
+{
+title: "Men Slim Fit Jeans",
+description: "Comfort stretch slim fit denim jeans.",
+category: "fashion",
+variants: [
+{
+color: "Dark Blue",
+size: "32",
+price: 65,
+stock: 90,
+images: [
+{ url: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246" }
+]
+}
+]
+},
+ 
+{
+title: "Unisex Hoodie",
+description: "Warm fleece hoodie with modern design.",
+category: "fashion",
+variants: [
+{
+color: "Grey",
+size: "M",
+price: 55,
+stock: 60,
+images: [
+{ url: "https://images.unsplash.com/photo-1556821840-3a9fbc0b6f6f" }
+]
+}
+]
+},
+ 
+{
+title: "Running Sneakers",
+description: "Lightweight running sneakers for daily workouts.",
+category: "fashion",
+variants: [
+{
+color: "White",
+size: "9",
+price: 89,
+stock: 40,
+images: [
+{ url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff" }
+]
+}
+]
+},
+ 
+/* BEAUTY */
+ 
+{
+title: "Vitamin C Face Serum",
+description: "Brightening serum for glowing skin.",
+category: "beauty",
+variants: [
+{
+color: "Default",
+size: "30ml",
+price: 35,
+stock: 80,
+images: [
+{ url: "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd" }
+]
+}
+]
+},
+ 
+{
+title: "Hydrating Face Moisturizer",
+description: "Deep hydration moisturizer for dry skin.",
+category: "beauty",
+variants: [
+{
+color: "Default",
+size: "50ml",
+price: 28,
+stock: 70,
+images: [
+{ url: "https://images.unsplash.com/photo-1596464716127-f2a82984de30" }
+]
+}
+]
+},
+ 
+{
+title: "Matte Finish Lipstick",
+description: "Long lasting matte lipstick.",
+category: "beauty",
+variants: [
+{
+color: "Red",
+size: "Standard",
+price: 18,
+stock: 100,
+images: [
+{ url: "https://images.unsplash.com/photo-1596462502278-27bfdc403348" }
+]
+}
+]
+},
+ 
+{
+title: "Organic Shampoo",
+description: "Sulfate free herbal shampoo.",
+category: "beauty",
+variants: [
+{
+color: "Default",
+size: "250ml",
+price: 22,
+stock: 75,
+images: [
+{ url: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273" }
+]
+}
+]
+},
+ 
+{
+title: "Perfume Eau De Parfum",
+description: "Premium long lasting fragrance.",
+category: "beauty",
+variants: [
+{
+color: "Classic",
+size: "100ml",
+price: 95,
+stock: 40,
+images: [
+{ url: "https://images.unsplash.com/photo-1541643600914-78b084683601" }
+]
+}
+]
+}
+ 
