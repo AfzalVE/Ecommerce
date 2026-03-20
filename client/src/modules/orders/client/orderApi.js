@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_URL } from "../../shared/utils/constants";
+import { API_URL } from "../../../shared/utils/constants";
 
-export const orderApi = createApi({
+export const clientOrderApi = createApi({
 
   reducerPath: "orderApi",
 
@@ -36,4 +36,4 @@ export const orderApi = createApi({
 export const {
   useCreateOrderMutation,
   useGetUserOrdersQuery
-} = orderApi;
+} = clientOrderApi;

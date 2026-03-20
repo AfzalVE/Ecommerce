@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { useDeleteProductMutation } from "./productApi";
+import { useDeleteProductMutation } from "../../modules/products/admin/productApi";
 import { API_URL } from "../../shared/utils/constants";
 
 export default function ProductList({ products }) {

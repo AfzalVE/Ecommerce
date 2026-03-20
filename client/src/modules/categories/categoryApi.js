@@ -27,7 +27,7 @@ export const categoryApi = createApi({
     /* GET CATEGORIES */
 
     getCategories: builder.query({
-      query: () => "/categories",
+      query: () => "/admin/categories",
       providesTags: ["Category"]
     }),
 
@@ -35,7 +35,7 @@ export const categoryApi = createApi({
 
     createCategory: builder.mutation({
       query: (data) => ({
-        url: "/categories",
+        url: "/admin/categories",
         method: "POST",
         body: data
       }),
@@ -46,7 +46,7 @@ export const categoryApi = createApi({
 
     updateCategory: builder.mutation({
       query: ({ id, ...data }) => ({
-        url: `/categories/${id}`,
+        url: `/admin/categories/${id}`,
         method: "PUT",
         body: data
       }),
@@ -57,7 +57,7 @@ export const categoryApi = createApi({
 
 deleteCategory: builder.mutation({
   query: (id) => ({
-    url: `/categories/${id}`,
+    url: `/admin/categories/${id}`,
     method: "DELETE"
   }),
   invalidatesTags: ["Categories"]

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useGetProductsQuery } from "../../modules/products/productApi";
 import { useGetCategoriesQuery } from "../../modules/categories/categoryApi";
 
-import ProductList from "../../modules/products/ProductList";
+import ProductList from "./ProductList";
 import CategoryList from "../../modules/categories/CategoryList";
 
 export default function Dashboard() {

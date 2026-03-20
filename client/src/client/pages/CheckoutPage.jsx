@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../shared/hooks/useCart";
-import { useCreateOrderMutation } from "../../modules/orders/orderApi";
+import { useCreateOrderMutation } from "../../modules/orders/client/orderApi";
 
 import useAuth from "../../shared/hooks/useAuth";
 

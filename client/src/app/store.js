@@ -1,12 +1,20 @@
 import { configureStore } from "@reduxjs/toolkit";
 
 import { authApi } from "../modules/auth/authApi";
-import { productApi } from "../modules/products/productApi";
+
+// ✅ PRODUCTS (ALL 3)
+import { productApi } from "../modules/products/productApi"; 
+import { clientProductApi } from "../modules/products/client/productApi";
+import { adminProductApi } from "../modules/products/admin/productApi";
+
+// ✅ ORDERS
+import { clientOrderApi } from "../modules/orders/client/orderApi";
+import { adminOrderApi } from "../modules/orders/admin/orderApi";
+
+// other APIs
 import { categoryApi } from "../modules/categories/categoryApi";
 import { reviewApi } from "../modules/reviews/reviewApi";
 import { cartApi } from "../modules/cart/cartApi";
-import { orderApi } from "../modules/orders/orderApi";
-
 
 import authReducer from "../modules/auth/authSlice";
 
@@ -23,7 +31,6 @@ import {
 } from "redux-persist";
 
 /* Persist Config */
-
 const persistConfig = {
   key: "auth",
   storage
@@ -40,11 +47,20 @@ export const store = configureStore({
     auth: persistedAuthReducer,
 
     [authApi.reducerPath]: authApi.reducer,
+
+    // ✅ PRODUCTS (ALL 3)
     [productApi.reducerPath]: productApi.reducer,
+    [clientProductApi.reducerPath]: clientProductApi.reducer,
+    [adminProductApi.reducerPath]: adminProductApi.reducer,
+
+    // ✅ ORDERS
+    [clientOrderApi.reducerPath]: clientOrderApi.reducer,
+    [adminOrderApi.reducerPath]: adminOrderApi.reducer,
+
+    // others
     [categoryApi.reducerPath]: categoryApi.reducer,
     [reviewApi.reducerPath]: reviewApi.reducer,
-[cartApi.reducerPath]: cartApi.reducer,
-    [orderApi.reducerPath]: orderApi.reducer
+    [cartApi.reducerPath]: cartApi.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -61,13 +77,21 @@ export const store = configureStore({
       }
     }).concat(
       authApi.middleware,
+
+      // ✅ PRODUCTS
       productApi.middleware,
+      clientProductApi.middleware,
+      adminProductApi.middleware,
+
+      // ✅ ORDERS
+      clientOrderApi.middleware,
+      adminOrderApi.middleware,
+
+      // others
       categoryApi.middleware,
       reviewApi.middleware,
-      cartApi.middleware,
-      orderApi.middleware
+      cartApi.middleware
     )
-
 
 });
 

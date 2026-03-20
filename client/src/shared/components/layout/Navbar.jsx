@@ -92,7 +92,6 @@ export default function Navbar() {
             {isAdmin && (
               <>
                 <Link to="/admin/dashboard">Dashboard</Link>
-                <Link to="/admin/add-product">Add Product</Link>
                 <Link to="/admin/orders">Orders</Link>
               </>
             )}

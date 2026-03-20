@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 
 import Dashboard from "../admin/pages/Dashboard";
-import AddEditProduct from "../modules/products/AddEditProduct";
+import AddEditProduct from "../admin/pages/AddEditProduct";
 import AddEditCategory from "../modules/categories/AddEditCategory";
 
 export default function AdminRoutes() {

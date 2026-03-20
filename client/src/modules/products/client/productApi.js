@@ -1,8 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_URL } from "../../shared/utils/constants";
+import { API_URL } from "../../../shared/utils/constants";
 
-export const productApi = createApi({
-  reducerPath: "productApi",
+export const clientProductApi = createApi({
+  reducerPath: "clientProductApi",
 
   baseQuery: fetchBaseQuery({
     baseUrl: API_URL,
@@ -13,9 +13,12 @@ export const productApi = createApi({
 
   endpoints: (builder) => ({
 
-    // GET ALL PRODUCTS
-    getProducts: builder.query({
-      query: () => "/products",
+    // FILTER / SEARCH PRODUCTS
+    getFilteredProducts: builder.query({
+      query: (params = {}) => {
+        const queryString = new URLSearchParams(params).toString();
+        return `/products${queryString ? `?${queryString}` : ""}`;
+      },
       providesTags: ["Products"],
 
       async onQueryStarted(arg, { queryFulfilled }) {
@@ -27,9 +30,9 @@ export const productApi = createApi({
       },
     }),
 
-    // GET PRODUCT BY ID
-    getProductById: builder.query({
-      query: (id) => `/products/${id}`,
+    // RELATED PRODUCTS
+    getRelatedProducts: builder.query({
+      query: (id) => `/products/${id}/related`,
 
       async onQueryStarted(arg, { queryFulfilled }) {
         try {
@@ -44,6 +47,6 @@ export const productApi = createApi({
 });
 
 export const {
-  useGetProductsQuery,
-  useGetProductByIdQuery,
-} = productApi;
+  useGetFilteredProductsQuery,
+  useGetRelatedProductsQuery,
+} = clientProductApi;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useGetUserOrdersQuery } from "../../modules/orders/orderApi";
+import { useGetUserOrdersQuery } from "../../modules/orders/client/orderApi";
 import Loader from "../../shared/components/ui/Loader";
 import {
   Package,

@@ -8,11 +8,11 @@ import Button from "../../shared/components/ui/Button";
 
 import {
   useCreateProductMutation,
-  useUpdateProductMutation,
-  useGetProductByIdQuery
-} from "./productApi";
+  useUpdateProductMutation
+} from "../../modules/products/admin/productApi";
+import { useGetProductByIdQuery } from "../../modules/products/productApi";
 
-import { useGetCategoriesQuery } from "../categories/categoryApi";
+import { useGetCategoriesQuery } from "../../modules/categories/categoryApi";
 import { API_URL } from "../../shared/utils/constants";
 
 export default function AddEditProduct() {
@@ -206,7 +206,7 @@ export default function AddEditProduct() {
       }
 
       toast.success(id ? "Product Updated" : "Product Created");
-      navigate("/dashboard");
+      navigate("/admin/dashboard");
 
     } catch (err) {
       console.error(err);
