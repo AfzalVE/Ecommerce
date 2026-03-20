@@ -1,9 +1,9 @@
 import Order from "../models/order.model.js";
 import Cart from "../models/cart.model.js";
-import Product from "../models/product.model.js"; // ✅ FIXED
+import Product from "../models/product.model.js";
 import Razorpay from "razorpay";
 import crypto from "crypto";
-import { addEmailJob } from "../queues/email.queue.js";
+import { addEmailJob } from "../infrastructure/queues/email.queue.js";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,

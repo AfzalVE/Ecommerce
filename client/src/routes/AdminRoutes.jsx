@@ -1,0 +1,31 @@
+import { Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./ProtectedRoute";
+
+import Dashboard from "../admin/pages/Dashboard";
+import AddEditProduct from "../modules/products/AddEditProduct";
+import AddEditCategory from "../modules/categories/AddEditCategory";
+
+export default function AdminRoutes() {
+  return (
+    <Routes>
+      <Route element={<ProtectedRoute adminOnly />}>
+
+        <Route path="dashboard" element={<Dashboard />} />
+
+        {/* PRODUCTS */}
+        <Route path="products">
+          <Route path="add" element={<AddEditProduct />} />
+          <Route path="edit/:id" element={<AddEditProduct />} />
+        </Route>
+
+        {/* CATEGORIES */}
+        <Route path="categories">
+          <Route index element={<AddEditCategory />} /> {/* list page */}
+          <Route path="add" element={<AddEditCategory />} />
+          <Route path="edit/:id" element={<AddEditCategory />} />
+        </Route>
+
+      </Route>
+    </Routes>
+  );
+}

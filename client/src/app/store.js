@@ -1,14 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import { authApi } from "../features/auth/authApi";
-import { productApi } from "../features/products/productApi";
-import { categoryApi } from "../features/categories/categoryApi";
-import { reviewApi } from "../features/reviews/reviewApi";
-import { cartApi } from "../features/cart/cartApi";
-import { orderApi } from "../features/orders/orderApi";
+import { authApi } from "../modules/auth/authApi";
+import { productApi } from "../modules/products/productApi";
+import { categoryApi } from "../modules/categories/categoryApi";
+import { reviewApi } from "../modules/reviews/reviewApi";
+import { cartApi } from "../modules/cart/cartApi";
+import { orderApi } from "../modules/orders/orderApi";
 
 
-import authReducer from "../features/auth/authSlice";
+import authReducer from "../modules/auth/authSlice";
 
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";

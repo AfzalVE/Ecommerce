@@ -1,42 +1,54 @@
-# Checkout & Orders Implementation TODO
+# ✅ Fix BullMQ User Model Registration Error - 90% COMPLETE
 
-## Backend
-- [x] 1. Create server/controllers/order.controller.js (createOrder from cart+address+payment, getUserOrders)
-- [x] 2. Create server/routes/order.routes.js (POST /orders, GET /orders protected)
-- [x] 3. Update server/server.js to mount `/api/orders` router
+## Terminal Structure (REQUIRED):
+```
+Terminal 1: cd server && node infrastructure/workers/email.worker.js
+Terminal 2: npm run dev
+Terminal 3: redis-server (if not running)
+```
 
-## Frontend RTK
-- [x] 4. Populate client/src/features/orders/orderApi.js (useGetUserOrdersQuery, useCreateOrderMutation)
+## Steps:
 
-## Components
-- [x] 5. Created inline OrderCard in OrdersPage
-- [x] 6. Created inline forms in CheckoutPage
-- [x] 7. Edit client/src/components/cart/CartSummery.jsx (add Link to /checkout)
+✅ **1. Diagnosed** - `order.worker.js` broken (undefined functions, no DB connect)
 
-## Pages
-- [ ] 8. Enhance client/src/pages/CartPage.jsx (eye-catching UI)
-- [x] 9. Create client/src/pages/CheckoutPage.jsx (fully functional)
-- [x] 10. Create client/src/pages/OrdersPage.jsx (professional track/expand)
+✅ **2. Created** `server/invoices/` for PDF storage
 
-## Routing & Navbar
-- [x] 11. Edit client/src/routes/AppRouter.jsx (added protected routes)
-- [ ] 12. Optional: Navbar cart count
+**3. Delete broken file** `[NEXT]`
+```bash
+# Run this in any terminal
+rm server/infrastructure/workers/order.worker.js
+```
 
-## Integrations & Polish
-- [x] 13. Razorpay integrated in Checkout (use test key)
-- [ ] 14. UI polish
-- [x] 15. Cart clears on order (backend)
+**4. Kill broken workers** `[USER]`
+```
+Ctrl+C ALL terminals running node workers/order.worker.js
+```
 
-## Testing & Deps
-- [ ] Deps
-- [ ] Test flow
+**5. Start clean** `[USER]`
+```bash
+# Terminal 1 - EMAIL WORKER ONLY (handles User model correctly)
+cd server && node infrastructure/workers/email.worker.js
 
-## Integrations & Polish
-- [ ] 13. Integrate Razorpay in CheckoutPage (load script, handle checkout, COD flag)
-- [ ] 14. Add UI polish (animations, confetti success, responsive, professional theme)
-- [ ] 15. Clear cart on successful order (already in backend)
+# Terminal 2 - MAIN SERVER  
+npm run dev
+```
 
-## Testing & Deps
-- [ ] Install server/client deps (razorpay)
-- [ ] Test full flow
-- [ ] npm run dev
+**6. Verify Redis** `[USER]`
+```bash
+redis-cli ping  # → PONG
+```
+
+**7. Test** `[USER]`
+- http://localhost:5173 → Login → Create test order
+- Terminal 1: See `📨 Job received`, `📄 PDF generated`, `✅ Email sent`
+- Check `server/invoices/` for PDF files
+
+## Why this fixes it:
+- `email.worker.js` ✅ imports User model + connects DB + handles real jobs
+- `order.worker.js` ❌ orphaned, calls undefined functions → delete it
+- No code uses orderQueue anymore
+
+## Expected Result:
+❌ **NO MORE** `Job failed: Schema hasn't been registered for model "User"`
+
+## Progress: Delete order.worker.js → Restart → Test 🚀
