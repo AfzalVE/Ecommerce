@@ -10,12 +10,11 @@ export default function ProductList({ products }) {
 
   /* ✅ SAFE IMAGE FINDER */
   const getProductImage = (product) => {
-    console.log("Finding image for product:", product);
+   
 
     if (!product?.variants) return null;
 
     for (let variant of product.variants) {
-      console.log("Checking variant:", variant);
       if (variant?.images && variant.images.length > 0) {
         return `${API_URL}${variant.images[0].url}`;
       }

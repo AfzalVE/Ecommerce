@@ -20,6 +20,9 @@ import { categoryApi } from "../modules/categories/categoryApi";
 import { reviewApi } from "../modules/reviews/reviewApi";
 import { cartApi } from "../modules/cart/cartApi";
 
+// DASHBOARD
+import { dashboardApi } from "../modules/dashboard/admin/dashboardApi";
+
 import {
   FLUSH,
   REHYDRATE,
@@ -56,6 +59,9 @@ export const store = configureStore({
     [categoryApi.reducerPath]: categoryApi.reducer,
     [reviewApi.reducerPath]: reviewApi.reducer,
     [cartApi.reducerPath]: cartApi.reducer,
+
+    //Dashboard
+    [dashboardApi.reducerPath]: dashboardApi.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -74,6 +80,9 @@ export const store = configureStore({
       // ORDERS
       clientOrderApi.middleware,
       adminOrderApi.middleware,
+
+      // DASHBOARD
+      dashboardApi.middleware,
 
       // OTHER
       categoryApi.middleware,

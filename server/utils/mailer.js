@@ -19,7 +19,6 @@ const transporter = nodemailer.createTransport({
   }
 
 });
-console.log("📧 Email transporter configured",process.env.EMAIL_USER , process.env.EMAIL_PASS);
 export const sendMail = async (options) => {
 
   try {

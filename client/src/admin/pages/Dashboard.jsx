@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { useGetProductsQuery } from "../../modules/products/productApi";
 import { useGetCategoriesQuery } from "../../modules/categories/categoryApi";
+import { useGetDashboardStatsQuery } from "../../modules/dashboard/admin/dashboardApi";
 
 import ProductList from "./ProductList";
 import CategoryList from "../../modules/categories/CategoryList";
@@ -13,6 +14,10 @@ export default function Dashboard() {
 
   const { data: productData } = useGetProductsQuery();
   const { data: categoryData } = useGetCategoriesQuery();
+  const { data: stats, isLoading, isError } = useGetDashboardStatsQuery();
+  const totalOrders = stats?.stats.totalOrders || 0;
+  const totalProducts = stats?.stats.totalProducts || 0;
+  const totalCategories = stats?.stats.totalCategories || 0;
 
   const products = productData?.products || [];
   const categories = categoryData?.categories || [];
@@ -51,20 +56,22 @@ export default function Dashboard() {
 
         <div className="bg-white rounded-xl shadow p-6">
           <h2 className="text-gray-500">Total Orders</h2>
-          <p className="text-3xl font-bold mt-2">0</p>
+          <p className="text-3xl font-bold mt-2">
+            {isLoading ? "..." : isError ? "Error" : totalOrders}
+          </p>
         </div>
 
         <div className="bg-white rounded-xl shadow p-6">
           <h2 className="text-gray-500">Total Products</h2>
           <p className="text-3xl font-bold mt-2">
-            {products.length}
+            {isLoading ? "..." : isError ? "Error" : totalProducts}
           </p>
         </div>
 
         <div className="bg-white rounded-xl shadow p-6">
           <h2 className="text-gray-500">Total Categories</h2>
           <p className="text-3xl font-bold mt-2">
-            {categories.length}
+            {isLoading ? "..." : isError ? "Error" : totalCategories}
           </p>
         </div>
 
@@ -76,22 +83,20 @@ export default function Dashboard() {
 
         <button
           onClick={() => setView("products")}
-          className={`px-4 py-2 rounded-lg ${
-            view === "products"
-              ? "bg-indigo-600 text-white"
-              : "bg-gray-200"
-          }`}
+          className={`px-4 py-2 rounded-lg ${view === "products"
+            ? "bg-indigo-600 text-white"
+            : "bg-gray-200"
+            }`}
         >
           Products
         </button>
 
         <button
           onClick={() => setView("categories")}
-          className={`px-4 py-2 rounded-lg ${
-            view === "categories"
-              ? "bg-indigo-600 text-white"
-              : "bg-gray-200"
-          }`}
+          className={`px-4 py-2 rounded-lg ${view === "categories"
+            ? "bg-indigo-600 text-white"
+            : "bg-gray-200"
+            }`}
         >
           Categories
         </button>

@@ -46,6 +46,7 @@ export const getAllOrders = async (req, res) => {
           totalAmount: 1,
           status: 1,
           paymentStatus: 1,
+          paymentMethod: 1,
           createdAt: 1,
           invoicePath: 1,
         },

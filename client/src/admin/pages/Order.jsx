@@ -52,12 +52,13 @@ const Order = () => {
 
     const handleStatusChange = async (id, status) => await updateStatus({ id, status });
     const handlePaymentChange = async (id, paymentStatus) => await updatePayment({ id, paymentStatus });
-    const handleCancelOrder = async (id) => {
-        if (confirm("Are you sure you want to cancel this order?")) await cancelOrder(id);
-    };
+    // const handleCancelOrder = async (id) => {
+    //     if (confirm("Are you sure you want to cancel this order?")) await cancelOrder(id);
+    // };
 
     const handlePrev = () => setPage((prev) => Math.max(prev - 1, 1));
     const handleNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
+    const handlePageSelect = (pageNum) => setPage(pageNum);
 
     // Reset page when filters or search change
     useEffect(() => {
@@ -125,6 +126,7 @@ const Order = () => {
                             <th className="p-3 text-left">Total</th>
                             <th className="p-3 text-left">Status</th>
                             <th className="p-3 text-left">Payment</th>
+                            <th className="p-3 text-left">Payment Mode</th>
                             <th className="p-3 text-left">Date</th>
                             <th className="p-3 text-left">Invoice</th>
                         </tr>
@@ -159,6 +161,11 @@ const Order = () => {
                                             <option key={status} value={status}>{status}</option>
                                         ))}
                                     </select>
+                                </td>
+                                <td className="p-3">
+                                    {order.paymentMethod
+                                        ? order.paymentMethod.charAt(0).toUpperCase() + order.paymentMethod.slice(1)
+                                        : "N/A"}
                                 </td>
                                 <td className="p-3 text-sm">{format(new Date(order.createdAt), "dd MMM yyyy, hh:mm a")}</td>
                                 <td className="p-3">

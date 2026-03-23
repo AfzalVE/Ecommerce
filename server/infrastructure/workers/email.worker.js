@@ -2,51 +2,41 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-
-
 import mongoose from "mongoose";
 import { Worker } from "bullmq";
 import connectDB from "../../config/db.js";
 import logger from "../../utils/logger.js";
 import { generateInvoicePDF } from "../../utils/invoiceGenerator.js";
 import { sendMail } from "../../utils/mailer.js";
-import "../../models/user.model.js"; 
+import "../../models/user.model.js";
 import Order from "../../models/order.model.js";
+import redisClient from "../../config/redis.js"; // ✅ USE THIS
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /* =========================
-   REDIS CONFIG
+   ENV CONFIG
 ========================= */
 dotenv.config({
-  path: path.resolve(__dirname, "../.env")
+  path: path.resolve(__dirname, "../.env"),
 });
-const REDIS_CONFIG = {
-  host: "127.0.0.1",
-  port: 6379
-};
 
 /* =========================
    START WORKER
 ========================= */
 
 const startWorker = async () => {
-
   try {
-
     /* connect database */
     await connectDB();
 
     logger.info("📦 Email Worker started");
 
     const worker = new Worker(
-
       "emailQueue",
 
       async (job) => {
-
         logger.info(`📨 Job received: ${job.name}`);
 
         if (job.name !== "sendInvoiceEmail") {
@@ -55,14 +45,14 @@ const startWorker = async () => {
         }
 
         try {
-
           const { orderId } = job.data;
 
           logger.info(`🔎 Finding order: ${orderId}`);
 
-          const order = await Order
-            .findById(orderId)
-            .populate("user", "name email");
+          const order = await Order.findById(orderId).populate(
+            "user",
+            "name email"
+          );
 
           if (!order) {
             logger.error(`❌ Order not found: ${orderId}`);
@@ -82,7 +72,6 @@ const startWorker = async () => {
           logger.info(`✅ PDF generated: ${pdfPath}`);
 
           order.invoicePath = pdfPath;
-
           await order.save();
 
           logger.info("💾 Invoice path saved to DB");
@@ -100,26 +89,21 @@ const startWorker = async () => {
             attachments: [
               {
                 filename: `invoice-${order.orderNumber}.pdf`,
-                path: pdfPath
-              }
-            ]
+                path: pdfPath,
+              },
+            ],
           });
 
           logger.info("✅ Email sent successfully");
-
         } catch (error) {
-
-          logger.error("❌ Worker job error: " + error.message);
-
+          logger.error(`❌ Worker job error: ${error.message}`);
           throw error;
         }
-
       },
 
       {
-        connection: REDIS_CONFIG
+        connection: redisClient, // ✅ USE REDIS CLIENT
       }
-
     );
 
     /* =========================
@@ -137,14 +121,10 @@ const startWorker = async () => {
     worker.on("error", (err) => {
       logger.error(`❌ Worker crashed: ${err.message}`);
     });
-
   } catch (error) {
-
-    logger.error("❌ Worker startup failed: " + error.message);
-
+    logger.error(`❌ Worker startup failed: ${error.message}`);
     process.exit(1);
   }
-
 };
 
 /* =========================
@@ -158,11 +138,10 @@ startWorker();
 ========================= */
 
 process.on("SIGINT", async () => {
-
   logger.info("🛑 Worker shutting down");
 
   await mongoose.disconnect();
+  await redisClient.quit(); // ✅ close redis connection
 
   process.exit(0);
-
 });
