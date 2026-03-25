@@ -59,6 +59,7 @@ export const getCategories = async (req,res)=>{
     const categories = await Category.find({
       isActive:true
     }).sort({ createdAt:-1 });
+    console.log("Fetched categories:", categories);
 
     res.json({
       success:true,

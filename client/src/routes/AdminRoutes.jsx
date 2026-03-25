@@ -3,7 +3,7 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import Dashboard from "../admin/pages/Dashboard";
 import AddEditProduct from "../admin/pages/AddEditProduct";
-import AddEditCategory from "../modules/categories/AddEditCategory";
+import AddEditCategory from "../modules/categories/admin/AddEditCategory";
 import Order from "../admin/pages/Order";
 
 export default function AdminRoutes() {

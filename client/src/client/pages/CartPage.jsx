@@ -42,59 +42,93 @@ const CartPage = () => {
       </div>
     );
 
+  /* EMPTY STATE */
   if (!items.length)
     return (
-      <div className="max-w-4xl mx-auto py-20 text-center">
-        <ShoppingCart className="mx-auto mb-4 opacity-40" size={80} />
+      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
 
-        <h2 className="text-2xl font-bold mb-4">
+        <ShoppingCart size={80} className="text-gray-300 mb-6" />
+
+        <h2 className="text-2xl font-semibold mb-2">
           Your cart is empty
         </h2>
 
+        <p className="text-gray-500 mb-6">
+          Looks like you haven't added anything yet.
+        </p>
+
         <Link to="/">
-          <Button>Continue Shopping</Button>
+          <button className="bg-yellow-400 hover:bg-yellow-500 px-6 py-3 rounded-lg font-semibold">
+            Continue Shopping
+          </button>
         </Link>
+
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-rose-50 to-orange-50 py-16 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-4 bg-white/70 backdrop-blur-xl px-10 py-6 rounded-3xl shadow-2xl border border-white/50 mb-6">
-            <ShoppingCart className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 rounded-3xl shadow-xl" />
-            <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600 bg-clip-text text-transparent mb-3">
-                Shopping Cart
-              </h1>
-              <p className="text-xl text-gray-600 font-medium">Review your selected items</p>
-            </div>
-          </div>
-        </div>
 
-        <div className="grid lg:grid-cols-3 gap-12">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/50">
+    <div className="bg-gray-100 min-h-screen py-10 px-4">
+
+      <div className="max-w-7xl mx-auto">
+
+        {/* HEADER */}
+        <h1 className="text-2xl md:text-3xl font-semibold mb-6">
+          My Cart ({items.length})
+        </h1>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+
+          {/* LEFT: CART ITEMS */}
+          <div className="lg:col-span-2 space-y-4">
+
+            <div className="bg-white rounded-lg shadow-sm p-4">
+
               <CartList
                 items={items}
                 onUpdate={handleUpdate}
                 onRemove={handleRemove}
               />
+
             </div>
-            <Button
-              variant="outline"
-              className="w-full bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white border-transparent shadow-xl hover:shadow-2xl transition-all duration-300 py-4 px-8 rounded-2xl text-lg font-semibold"
-              onClick={handleClear}
-            >
-              Clear Cart
-            </Button>
+
+            {/* CLEAR CART */}
+            <div className="flex justify-end">
+              <button
+                onClick={handleClear}
+                className="text-red-500 font-medium hover:underline"
+              >
+                Clear Cart
+              </button>
+            </div>
+
           </div>
 
-          <div className="lg:sticky lg:top-24">
-            <CartSummary subtotal={subtotal} />
+          {/* RIGHT: SUMMARY */}
+          <div className="lg:sticky lg:top-24 h-fit">
+
+            <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
+
+              <h2 className="text-lg font-semibold border-b pb-3">
+                Price Details
+              </h2>
+
+              <CartSummary subtotal={subtotal} />
+
+              <Link to="/checkout">
+                <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-black py-3 rounded-lg font-semibold">
+                  Proceed to Checkout
+                </button>
+              </Link>
+
+            </div>
+
           </div>
+
         </div>
+
       </div>
+
     </div>
   );
 };

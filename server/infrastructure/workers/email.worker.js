@@ -10,7 +10,7 @@ import { generateInvoicePDF } from "../../utils/invoiceGenerator.js";
 import { sendMail } from "../../utils/mailer.js";
 import "../../models/user.model.js";
 import Order from "../../models/order.model.js";
-import redisClient from "../../config/redis.js"; // ✅ USE THIS
+import redisClient from "../../config/redis.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +25,7 @@ dotenv.config({
 /* =========================
    START WORKER
 ========================= */
+
 
 const startWorker = async () => {
   try {

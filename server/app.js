@@ -24,7 +24,8 @@ app.use(express.json());
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://postcanonical-joy-nonradiating.ngrok-free.dev"
+    "https://postcanonical-joy-nonradiating.ngrok-free.dev",
+    "https://l78993p4-5173.inc1.devtunnels.ms"
   ],
   credentials: true,
 }));

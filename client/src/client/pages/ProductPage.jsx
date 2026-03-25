@@ -4,7 +4,6 @@ import { useGetProductByIdQuery } from "../../modules/products/productApi";
 import ProductGallery from "../../shared/components/products/ProductGallery";
 import ProductDetails from "../../shared/components/products/ProductDetails";
 import ReviewSection from "../../shared/components/products/ReviewSection";
-import AddReview from "../../shared/components/products/AddReview";
 import SimilarProducts from "../../shared/components/products/SimilarProducts";
 
 export default function ProductPage(){
@@ -35,9 +34,7 @@ export default function ProductPage(){
 
    <ReviewSection productId={product._id} />
 
-   {/* ADD REVIEW */}
 
-   <AddReview productId={product._id} />
 
    {/* SIMILAR PRODUCTS */}
 

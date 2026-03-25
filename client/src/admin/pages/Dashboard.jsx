@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useGetProductsQuery } from "../../modules/products/productApi";
-import { useGetCategoriesQuery } from "../../modules/categories/categoryApi";
+import { useGetCategoriesQuery } from "../../modules/categories/admin/categoryApi";
 import { useGetDashboardStatsQuery } from "../../modules/dashboard/admin/dashboardApi";
 
 import ProductList from "./ProductList";
-import CategoryList from "../../modules/categories/CategoryList";
+import CategoryList from "../../modules/categories/admin/CategoryList";
 
 export default function Dashboard() {
 

@@ -1,11 +1,39 @@
 import { Link } from "react-router-dom";
 import { useGetProductsQuery } from "../../../modules/products/productApi";
 import { API_URL } from "../../utils/constants";
+import { useAddToCartMutation } from "../../../modules/cart/cartApi";
+import toast from "react-hot-toast";
 
 export default function FeaturedProducts() {
+  const [addToCart, { isLoading: isAdding }] = useAddToCartMutation();
   const { data, isLoading, isError } = useGetProductsQuery();
 
   const products = data?.products || [];
+
+  const handleAddToCart = async (e, product) => {
+    e.stopPropagation(); // ❗ prevent redirect
+    e.preventDefault();  // ❗ prevent Link navigation
+
+    const firstVariant = product?.variants?.[0];
+
+    if (!firstVariant) {
+      return toast.error("No variant available");
+    }
+
+    try {
+      await addToCart({
+        productId: product._id,
+        variantId: firstVariant._id,
+        quantity: 1,
+      }).unwrap();
+
+      toast.success("🛒 Added to cart");
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to add item");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -44,69 +72,65 @@ export default function FeaturedProducts() {
         </div>
 
         {/* GRID */}
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
 
           {products.map((product) => {
             const firstVariant = product?.variants?.[0];
             const image = firstVariant?.images?.[0]?.url;
 
             return (
-              <div
+              <Link
+                to={`/product/${encodeURIComponent(product.title)}/${product._id}`}
                 key={product._id}
-                className="bg-white rounded-2xl shadow-sm hover:shadow-2xl transition duration-300 group overflow-hidden"
+                className="bg-white border rounded-lg hover:shadow-md transition group block"
               >
                 {/* IMAGE */}
-                <Link to={`/product/${product.slug}/${product._id}`}>
-                  <div className="relative w-full h-52 bg-gray-100 flex items-center justify-center overflow-hidden">
+                <div className="h-40 flex items-center justify-center bg-gray-100 relative">
 
-                    <img
-                      src={
-                        image
-                          ? `${API_URL}${image}`
-                          : "https://via.placeholder.com/400x300"
-                      }
-                      alt={product.title}
-                      className="object-contain h-full w-full group-hover:scale-110 transition duration-500"
-                    />
+                  <img
+                    src={image ? `${API_URL}${image}` : "https://via.placeholder.com/300"}
+                    className="h-full object-contain group-hover:scale-105 transition"
+                  />
 
-                    {/* BADGE */}
-                    <span className="absolute top-3 left-3 bg-red-500 text-white text-xs px-2 py-1 rounded">
-                      SALE
-                    </span>
-                  </div>
-                </Link>
+                  <span className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded">
+                    20% OFF
+                  </span>
+                </div>
 
                 {/* DETAILS */}
-                <div className="p-4">
+                <div className="p-3">
 
-                  <h3 className="font-semibold text-lg mb-1 line-clamp-1">
+                  <h3 className="text-sm font-medium line-clamp-2">
                     {product.title}
                   </h3>
 
-                  {/* RATING */}
-                  <div className="text-yellow-500 text-sm mb-2">
-                    ⭐ 4.5 (120)
+                  <div className="flex items-center text-xs mt-1">
+                    <span className="bg-green-600 text-white px-1 rounded mr-1">4.3</span>
+                    <span className="text-gray-500">(120)</span>
                   </div>
 
-                  {/* PRICE */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-indigo-600 font-bold text-lg">
-                      ₹{firstVariant?.price || 0}
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="font-semibold">
+                      ₹{firstVariant?.price}
                     </span>
-                    <span className="text-gray-400 line-through text-sm">
-                      ₹{(firstVariant?.price || 0) + 200}
+                    <span className="line-through text-gray-400 text-xs">
+                      ₹{firstVariant?.price + 200}
                     </span>
                   </div>
 
-                  {/* ACTION */}
-                  <button className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition">
-                    Add to Cart
+                  {/* BUTTON */}
+                  <button
+                    onClick={(e) => handleAddToCart(e, product)}
+                    disabled={isAdding}
+                    className="mt-3 w-full bg-yellow-400 text-black py-2 rounded hover:bg-yellow-500 disabled:opacity-50"
+                  >
+                    {isAdding ? "Adding..." : "Add to Cart"}
                   </button>
+
                 </div>
-              </div>
+              </Link>
             );
           })}
-
         </div>
       </div>
     </section>

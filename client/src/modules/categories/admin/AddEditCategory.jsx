@@ -1,7 +1,7 @@
 import { useState } from "react";
-import PageContainer from "../../shared/components/layout/PageContainer";
-import Input from "../../shared/components/ui/Input";
-import Button from "../../shared/components/ui/Button";
+import PageContainer from "../../../shared/components/layout/PageContainer";
+import Input from "../../../shared/components/ui/Input";
+import Button from "../../../shared/components/ui/Button";
 
 import {
   useGetCategoriesQuery,

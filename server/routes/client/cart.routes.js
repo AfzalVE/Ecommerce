@@ -2,6 +2,7 @@ import express from "express";
 import { protect } from "../../middleware/auth.middleware.js";
 import {
   getCart,
+  getCartCount, 
   addToCart,
   updateCartItem,
   deleteCartItem,
@@ -10,19 +11,25 @@ import {
 
 const router = express.Router();
 
-router.use(protect);  // All routes protected
+// 🔒 Protect all routes
+router.use(protect);
+
+
+router.get("/count", getCartCount);
+
 
 router
   .route("/")
   .get(getCart)
   .post(addToCart);
 
+
+router.delete("/clear", clearCart);
+
+
 router
   .route("/:id")
   .patch(updateCartItem)
   .delete(deleteCartItem);
 
-router.delete("/clear", clearCart);
-
 export default router;
-
