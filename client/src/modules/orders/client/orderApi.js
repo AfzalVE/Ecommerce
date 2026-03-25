@@ -9,7 +9,12 @@ export const clientOrderApi = createApi({
 
   baseQuery: fetchBaseQuery({
     baseUrl: `${API_URL}/orders`,
-    credentials: "include"
+    credentials: "include",
+
+     prepareHeaders: (headers) => {
+    headers.set("ngrok-skip-browser-warning", "true"); // ✅ FIX
+    return headers;
+  },
   }),
 
   endpoints: (builder) => ({

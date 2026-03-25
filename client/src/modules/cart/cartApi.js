@@ -8,6 +8,7 @@ export const cartApi = createApi({
     baseUrl: `${API_URL}/cart`,  // /api/cart
     credentials: "include",
     prepareHeaders: (headers, { getState }) => {
+        headers.set("ngrok-skip-browser-warning", "true"); // ✅ FIX
       // Use cookie auth (backend JWT in httpOnly cookie)
       // Optional: add Bearer if needed
       return headers;

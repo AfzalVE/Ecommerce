@@ -25,7 +25,8 @@ app.use(cors({
   origin: [
     "http://localhost:5173",
     "https://postcanonical-joy-nonradiating.ngrok-free.dev",
-    "https://l78993p4-5173.inc1.devtunnels.ms"
+    "https://l78993p4-5173.inc1.devtunnels.ms",
+    "https://ecommerce-self-mu-45.vercel.app"
   ],
   credentials: true,
 }));

@@ -8,6 +8,7 @@ export const dashboardApi = createApi({
     baseUrl: API_URL,
     credentials: "include",
     prepareHeaders: (headers, { getState }) => {
+        headers.set("ngrok-skip-browser-warning", "true");
       const token = getState().auth.token;
       if (token) headers.set("authorization", `Bearer ${token}`);
       return headers;

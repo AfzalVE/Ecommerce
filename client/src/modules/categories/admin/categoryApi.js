@@ -9,6 +9,7 @@ export const categoryApi = createApi({
     credentials: "include",
 
     prepareHeaders: (headers, { getState }) => {
+       headers.set("ngrok-skip-browser-warning", "true");
 
       const token = getState().auth.token;
 

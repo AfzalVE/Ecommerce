@@ -7,6 +7,11 @@ export const clientProductApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: API_URL,
     credentials: "include",
+
+     prepareHeaders: (headers) => {
+    headers.set("ngrok-skip-browser-warning", "true"); // ✅ FIX
+    return headers;
+  },
   }),
 
   tagTypes: ["Products"],

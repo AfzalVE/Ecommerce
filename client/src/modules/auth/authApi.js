@@ -8,6 +8,11 @@ export const authApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: API_URL,
     credentials: "include", // important for cookies
+
+     prepareHeaders: (headers) => {
+    headers.set("ngrok-skip-browser-warning", "true"); // ✅ FIX
+    return headers;
+  },
   }),
 
   endpoints: (builder) => ({
