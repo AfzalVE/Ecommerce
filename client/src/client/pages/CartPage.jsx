@@ -2,7 +2,7 @@ import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import Loader from "../../shared/components/ui/Loader";
 import Button from "../../shared/components/ui/Button";
-
+import { useEffect } from "react";
 import CartList from "../../shared/components/cart/CartList";
 import CartSummary from "../../shared/components/cart/CartSummery";
 import { useCart } from "../../shared/hooks/useCart";
@@ -18,7 +18,7 @@ const CartPage = () => {
     updateItem,
     clearCart
   } = useCart();
-
+const { refetch } = useCart();
   const handleRemove = async (id) => {
     await removeItem(id).unwrap();
     toast.success("Item removed");
@@ -32,7 +32,9 @@ const CartPage = () => {
     await clearCart().unwrap();
     toast.success("Cart cleared");
   };
-
+useEffect(() => {
+  refetch(); // 🔥 force fresh data
+}, []);
   if (isLoading) return <Loader className="py-20" />;
 
   if (error)

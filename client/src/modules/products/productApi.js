@@ -1,54 +1,105 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_URL } from "../../shared/utils/constants";
+import { apiSlice } from "../../app/api/apiSlice";
 
-export const productApi = createApi({
-  reducerPath: "productApi",
-
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_URL,
-    credentials: "include",
-
-     prepareHeaders: (headers) => {
-    headers.set("ngrok-skip-browser-warning", "true"); // ✅ FIX
-    return headers;
-  },
-  }),
-
-  tagTypes: ["Products"],
-
+export const productApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
 
-    // GET ALL PRODUCTS
+    // ✅ GET PRODUCTS (FIXED)
     getProducts: builder.query({
-      query: () => "/products",
-      providesTags: ["Products"],
+      query: (args = {}) => {
+        const {
+          keyword = "",
+          page = 1,
+          limit = 12,  
+          category = "",
+          minPrice = "",
+          maxPrice = "",
+          color = "",
+          size = "",
+          sort = "newest",
+        } = args;
 
-      async onQueryStarted(arg, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-        } catch (err) {
-          console.error(err);
-        }
+        let url = `/products?search=${keyword}&page=${page}&limit=${limit}&sort=${sort}`;
+
+        if (category) url += `&category=${category}`;
+        if (minPrice) url += `&minPrice=${minPrice}`;
+        if (maxPrice) url += `&maxPrice=${maxPrice}`;
+        if (color) url += `&color=${color}`;
+        if (size) url += `&size=${size}`;
+
+        return url;
       },
+
+      providesTags: (result) =>
+        result?.products
+          ? [
+              ...result.products.map(({ _id }) => ({
+                type: "Products",
+                id: _id,
+              })),
+              { type: "Products", id: "LIST" },
+            ]
+          : [{ type: "Products", id: "LIST" }],
     }),
 
-    // GET PRODUCT BY ID
+    // ✅ GET SINGLE PRODUCT
     getProductById: builder.query({
       query: (id) => `/products/${id}`,
+      providesTags: (result, error, id) => [{ type: "Products", id }],
+    }),
 
-      async onQueryStarted(arg, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-        } catch (err) {
-          console.error(err);
-        }
-      },
+    // ✅ GET CATEGORIES
+    getCategories: builder.query({
+      query: () => "/products/categories",
+      providesTags: ["Categories"],
+    }),
+
+    // ✅ GET CATEGORY COUNT
+    getCategoryCount: builder.query({
+      query: () => "/products/categories/count",
+      providesTags: ["Categories"],
+    }),
+
+    // ✅ CREATE PRODUCT
+    createProduct: builder.mutation({
+      query: (data) => ({
+        url: "/products",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: [{ type: "Products", id: "LIST" }],
+    }),
+
+    // ✅ UPDATE PRODUCT
+    updateProduct: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `/products/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Products", id },
+      ],
+    }),
+
+    // ✅ DELETE PRODUCT
+    deleteProduct: builder.mutation({
+      query: (id) => ({
+        url: `/products/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "Products", id: "LIST" }],
     }),
 
   }),
 });
 
+// ✅ EXPORT HOOKS
 export const {
   useGetProductsQuery,
   useGetProductByIdQuery,
+  useGetCategoriesQuery,
+  useGetCategoryCountQuery,
+  useCreateProductMutation,
+  useUpdateProductMutation,
+  useDeleteProductMutation,
 } = productApi;

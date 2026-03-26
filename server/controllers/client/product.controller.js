@@ -1,54 +1,191 @@
 // controllers/client/product.controller.js
 
+import mongoose from "mongoose";
 import Product from "../../models/product.model.js";
 import logger from "../../utils/logger.js";
 
 // ==============================
 // GET PRODUCTS (PUBLIC)
 // ==============================
-
 export const getProducts = async (req, res) => {
   try {
-    const {
+    // =============================
+    // 📥 QUERY PARAMS
+    // =============================
+    let {
       page = 1,
       limit = 12,
       search = "",
       category,
-      sort = "createdAt",
+      sort = "newest",
+      minPrice,
+      maxPrice,
+      color,
+      size,
     } = req.query;
 
-    const query = {};
-
-    if (search) {
-      query.title = {
-        $regex: search,
-        $options: "i",
-      };
-    }
-
-    if (category) {
-      query.category = category;
-    }
-
+    // ✅ SAFE PARSING
+    page = Number(page) > 0 ? Number(page) : 1;
+    limit = Number(limit) > 0 ? Number(limit) : 12;
     const skip = (page - 1) * limit;
 
-    const products = await Product.find(query)
-      .populate("category", "name slug")
-      .sort({ [sort]: -1 })
-      .skip(skip)
-      .limit(Number(limit));
+    // =============================
+    // 🧠 MATCH STAGE
+    // =============================
+    const matchStage = {};
 
-    const totalProducts = await Product.countDocuments(query);
+    // 🔍 SEARCH
+    if (search?.trim()) {
+      matchStage.$or = [
+        { title: { $regex: search.trim(), $options: "i" } },
+        { description: { $regex: search.trim(), $options: "i" } },
+      ];
+    }
+
+    // 📂 CATEGORY
+    if (category && mongoose.Types.ObjectId.isValid(category)) {
+      matchStage.category = new mongoose.Types.ObjectId(category);
+    }
+
+    // =============================
+    // 🎨 VARIANT FILTER BUILD
+    // =============================
+    const variantConditions = [];
+
+    // 💰 PRICE
+    if (minPrice || maxPrice) {
+      const priceCond = [];
+
+      if (minPrice) {
+        priceCond.push({
+          $gte: ["$$variant.price", Number(minPrice)],
+        });
+      }
+
+      if (maxPrice) {
+        priceCond.push({
+          $lte: ["$$variant.price", Number(maxPrice)],
+        });
+      }
+
+      variantConditions.push(...priceCond);
+    }
+
+    // 🎨 COLOR
+    if (color) {
+      variantConditions.push({
+        $in: ["$$variant.color", color.split(",")],
+      });
+    }
+
+    // 📏 SIZE
+    if (size) {
+      variantConditions.push({
+        $in: ["$$variant.size", size.split(",")],
+      });
+    }
+
+    // =============================
+    // 🔃 SORT
+    // =============================
+    const getSortOption = () => {
+      switch (sort) {
+        case "price_asc":
+          return { minPrice: 1 };
+        case "price_desc":
+          return { minPrice: -1 };
+        case "oldest":
+          return { createdAt: 1 };
+        default:
+          return { createdAt: -1 };
+      }
+    };
+
+    // =============================
+    // 🚀 PIPELINE
+    // =============================
+    const pipeline = [
+      { $match: matchStage },
+
+      // ✅ FILTER VARIANTS
+      ...(variantConditions.length
+        ? [
+            {
+              $addFields: {
+                variants: {
+                  $filter: {
+                    input: "$variants",
+                    as: "variant",
+                    cond: {
+                      $and: variantConditions,
+                    },
+                  },
+                },
+              },
+            },
+            {
+              $match: {
+                variants: { $ne: [] },
+              },
+            },
+          ]
+        : []),
+
+      // ✅ MIN PRICE
+      {
+        $addFields: {
+          minPrice: { $min: "$variants.price" },
+        },
+      },
+
+      // ✅ CATEGORY POPULATE
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: {
+          path: "$category",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // ✅ SORT
+      { $sort: getSortOption() },
+
+      // ✅ PAGINATION + COUNT
+      {
+        $facet: {
+          products: [{ $skip: skip }, { $limit: limit }],
+          totalCount: [{ $count: "count" }],
+        },
+      },
+    ];
+
+    // =============================
+    // 🧾 EXECUTE
+    // =============================
+    const result = await Product.aggregate(pipeline);
+
+    const products = result[0]?.products || [];
+    const totalProducts = result[0]?.totalCount[0]?.count || 0;
 
     logger.info(`Products fetched: ${products.length}`);
 
+    // =============================
+    // 📤 RESPONSE
+    // =============================
     return res.status(200).json({
       success: true,
       products,
       pagination: {
         total: totalProducts,
-        page: Number(page),
-        limit: Number(limit),
+        page,
+        limit,
         totalPages: Math.ceil(totalProducts / limit),
       },
     });
@@ -65,10 +202,16 @@ export const getProducts = async (req, res) => {
 // ==============================
 // GET PRODUCT BY ID (PUBLIC)
 // ==============================
-
 export const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product ID",
+      });
+    }
 
     const product = await Product.findById(id).populate(
       "category",

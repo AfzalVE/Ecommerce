@@ -1,47 +1,21 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { apiSlice } from "../../app/api/apiSlice";
 
-export const reviewApi = createApi({
-
-  reducerPath: "reviewApi",
-
-  baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api",
-    credentials: "include"
-  }),
-
-  tagTypes: ["Reviews"],
-
+export const reviewApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
 
-    /* Get Reviews of a Product */
-
     getReviews: builder.query({
-
       query: (productId) => `/reviews/${productId}`,
-
-      providesTags: ["Reviews"]
-
+      providesTags: ["Reviews"],
     }),
 
-    /* Create Review */
-
     createReview: builder.mutation({
-
       query: (body) => ({
         url: "/reviews",
         method: "POST",
-        body
+        body,
       }),
+      invalidatesTags: ["Reviews"],
+    }),
 
-      invalidatesTags: ["Reviews"]
-
-    })
-
-  })
-
+  }),
 });
-
-export const {
-  useGetReviewsQuery,
-  useCreateReviewMutation
-} = reviewApi;

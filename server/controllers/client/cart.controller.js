@@ -37,7 +37,7 @@ export const getCart = async (req, res) => {
     };
 
     // 💾 Store in Redis (5 min)
-    await redisClient.setEx(cacheKey, 300, JSON.stringify(response));
+    await redisClient.set(cacheKey, JSON.stringify(response), "EX", 300);
 
     res.json(response);
 
@@ -79,8 +79,7 @@ export const getCartCount = async (req, res) => {
     };
 
     // 💾 Cache for 2 min (shorter TTL)
-    await redisClient.setEx(cacheKey, 120, JSON.stringify(response));
-
+    await redisClient.set(cacheKey, JSON.stringify(response), "EX", 120);
     res.json(response);
 
   } catch (error) {
@@ -209,7 +208,6 @@ export const updateCartItem = async (req, res) => {
     // ❌ Invalidate cache
     await redisClient.del(getCartKey(userId));
     await redisClient.del(getCartCountKey(userId));
-
     logger.info(`✏️ Updated cart item → qty: ${quantity}`);
 
     res.json({

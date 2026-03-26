@@ -2,10 +2,13 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useLoginMutation } from "../../modules/auth/authApi";
+import { apiSlice } from "../../app/api/apiSlice";
+import { useDispatch } from "react-redux";
 
 export default function LoginPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [loginUser, { isLoading }] = useLoginMutation();
   const from = location.state?.from || "/";
 
@@ -28,7 +31,7 @@ export default function LoginPage() {
     try {
 
       const res = await loginUser(form).unwrap();
-
+      dispatch(apiSlice.util.resetApiState());
       toast.success("Login successful");
 
       navigate(from);

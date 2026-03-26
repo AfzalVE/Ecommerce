@@ -3,7 +3,7 @@ import Cart from "../models/cart.model.js";
 import Product from "../models/product.model.js";
 import Razorpay from "razorpay";
 import crypto from "crypto";
-import { addEmailJob } from "../infrastructure/queues/email.queue.js";
+import {  addEmailJob } from "../infrastructure/queues/email.queue.js";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -141,7 +141,8 @@ export const createOrderService = async ({ user, body }) => {
 
       await product.save();
     }
-
+    console.log(order._id);
+    console.log("Stock reduced for COD order");
     await addEmailJob({
       orderId: order._id
     });

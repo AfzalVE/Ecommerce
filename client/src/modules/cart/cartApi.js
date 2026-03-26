@@ -1,59 +1,60 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_URL } from "../../shared/utils/constants";
+import { apiSlice } from "../../app/api/apiSlice";
 
-export const cartApi = createApi({
-  reducerPath: "cartApi",
-  tagTypes: ["Cart"],
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${API_URL}/cart`,  // /api/cart
-    credentials: "include",
-    prepareHeaders: (headers, { getState }) => {
-        headers.set("ngrok-skip-browser-warning", "true"); // ✅ FIX
-      // Use cookie auth (backend JWT in httpOnly cookie)
-      // Optional: add Bearer if needed
-      return headers;
-    },
-  }),
+export const cartApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+
+    // 🟢 GET FULL CART
     getCart: builder.query({
-      query: () => "",
+      query: () => "/cart",
       providesTags: ["Cart"],
     }),
+
+    // 🟢 GET CART COUNT
+    getCartCount: builder.query({
+      query: () => "/cart/count",
+      providesTags: ["Cart"],
+    }),
+
+    // 🟢 ADD TO CART
     addToCart: builder.mutation({
       query: ({ productId, variantId, quantity = 1 }) => ({
-        url: "",
+        url: "/cart",
         method: "POST",
         body: { productId, variantId, quantity },
       }),
       invalidatesTags: ["Cart"],
     }),
-    getCartCount: builder.query({
-      query: () => "/count",
-      providesTags: ["Cart"],
-    }),
+
+    // 🟢 UPDATE ITEM
     updateCartItem: builder.mutation({
       query: ({ itemId, quantity }) => ({
-        url: `/${itemId}`,
+        url: `/cart/${itemId}`,
         method: "PATCH",
         body: { quantity },
       }),
       invalidatesTags: ["Cart"],
     }),
+
+    // 🟢 REMOVE ITEM
     removeFromCart: builder.mutation({
       query: (itemId) => ({
-        url: `/${itemId}`,
+        url: `/cart/${itemId}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Cart"],
     }),
+
+    // 🟢 CLEAR CART
     clearCart: builder.mutation({
       query: () => ({
-        url: "/clear",
+        url: "/cart/clear",
         method: "DELETE",
       }),
       invalidatesTags: ["Cart"],
     }),
+
   }),
+  overrideExisting: false,
 });
 
 export const {
@@ -64,4 +65,3 @@ export const {
   useRemoveFromCartMutation,
   useClearCartMutation,
 } = cartApi;
-

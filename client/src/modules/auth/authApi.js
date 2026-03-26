@@ -1,23 +1,10 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_URL } from "../../shared/utils/constants";
+import { apiSlice } from "../../app/api/apiSlice";
 import { setAuth, logout } from "./authSlice";
 
-export const authApi = createApi({
-  reducerPath: "authApi",
-
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_URL,
-    credentials: "include", // important for cookies
-
-     prepareHeaders: (headers) => {
-    headers.set("ngrok-skip-browser-warning", "true"); // ✅ FIX
-    return headers;
-  },
-  }),
-
+export const authApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
 
-    // LOGIN
+    // 🔐 LOGIN
     login: builder.mutation({
       query: (data) => ({
         url: "/auth/login",
@@ -28,18 +15,15 @@ export const authApi = createApi({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-                    console.log("Fetched current user profile:", data);
-
 
           dispatch(setAuth(data.user));
-
         } catch (err) {
           console.error(err);
         }
       },
     }),
 
-    // REGISTER
+    // 📝 REGISTER
     register: builder.mutation({
       query: (data) => ({
         url: "/auth/register",
@@ -48,7 +32,7 @@ export const authApi = createApi({
       }),
     }),
 
-    // LOGOUT
+    // 🚪 LOGOUT
     logoutUser: builder.mutation({
       query: () => ({
         url: "/auth/logout",
@@ -58,26 +42,34 @@ export const authApi = createApi({
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
+
           dispatch(logout());
+
+          // 🔥 CRITICAL: clear ALL cached data (cart bug fix)
+          dispatch(apiSlice.util.resetApiState());
+
         } catch (err) {
           console.error(err);
         }
       },
     }),
 
-    // CURRENT USER (AUTO LOGIN)
+    // 👤 CURRENT USER
     getCurrentUser: builder.query({
       query: () => "/auth/me",
 
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
+
           dispatch(setAuth(data.user));
-        } catch {}
+        } catch {
+          // silently fail (user not logged in)
+        }
       },
     }),
 
-    // SEND OTP
+    // 🔐 OTP
     sendOtp: builder.mutation({
       query: (data) => ({
         url: "/auth/send-otp",
@@ -86,7 +78,6 @@ export const authApi = createApi({
       }),
     }),
 
-    // VERIFY OTP
     verifyOtp: builder.mutation({
       query: (data) => ({
         url: "/auth/verify-otp",
@@ -95,7 +86,6 @@ export const authApi = createApi({
       }),
     }),
 
-    // RESET PASSWORD
     resetPassword: builder.mutation({
       query: (data) => ({
         url: "/auth/reset-password",
@@ -105,6 +95,7 @@ export const authApi = createApi({
     }),
 
   }),
+  overrideExisting: false,
 });
 
 export const {

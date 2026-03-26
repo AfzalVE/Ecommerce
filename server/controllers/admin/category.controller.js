@@ -109,6 +109,26 @@ export const deleteCategory = async (req,res)=>{
   }
 
 };
+/* GET CATEGORY COUNT */
+
+export const getCategoryCount = async (req, res) => {
+  try {
+    // ✅ count only active categories (recommended)
+    const count = await Category.countDocuments({ isActive: true });
+
+    res.status(200).json({
+      success: true,
+      count,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to count categories",
+      error: err.message,
+    });
+  }
+};
 
 /* UPDATE CATEGORY */
 

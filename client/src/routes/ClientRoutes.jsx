@@ -12,12 +12,16 @@ import ForgotPassword from "../modules/auth/ForgetPassword";
 import VerifyOTP from "../modules/auth/VerifyOTP";
 import ResetPassword from "../modules/auth/ResetPassword";
 import CategoryPage from "../client/pages/CategoryPage";
+import SearchPage from "../client/pages/SearchPage";
+
+
 
 export default function ClientRoutes() {
   return (
     <Routes>
 
       <Route path="/" element={<Home />} />
+      <Route path="/search" element={<SearchPage />} />
 
       {/* ✅ PRODUCT */}
       <Route path="/product/:slug/:id" element={<ProductPage />} />
@@ -26,7 +30,7 @@ export default function ClientRoutes() {
       <Route path="/category/:categoryId" element={<CategoryPage />} />
 
       {/* (Optional fallback) */}
-      <Route path="/products" element={<CategoryPage />} />
+      <Route path="/category" element={<CategoryPage />} />
 
       {/* AUTH */}
       <Route path="/login" element={<LoginPage />} />
@@ -39,6 +43,7 @@ export default function ClientRoutes() {
       <Route path="/cart" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/orders" element={<OrdersPage />} />
+
 
     </Routes>
   );

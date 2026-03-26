@@ -1,16 +1,17 @@
+// infrastructure/workers/email.worker.js
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 
 import mongoose from "mongoose";
 import { Worker } from "bullmq";
+import IORedis from "ioredis";
 import connectDB from "../../config/db.js";
 import logger from "../../utils/logger.js";
 import { generateInvoicePDF } from "../../utils/invoiceGenerator.js";
 import { sendMail } from "../../utils/mailer.js";
 import "../../models/user.model.js";
 import Order from "../../models/order.model.js";
-import redisClient from "../../config/redis.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,25 +19,27 @@ const __dirname = path.dirname(__filename);
 /* =========================
    ENV CONFIG
 ========================= */
-dotenv.config({
-  path: path.resolve(__dirname, "../.env"),
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
+/* =========================
+   REDIS CONNECTION (ioredis)
+========================= */
+const redisConnection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379", {
+  maxRetriesPerRequest: null, // ✅ Required by BullMQ
 });
 
 /* =========================
    START WORKER
 ========================= */
-
-
 const startWorker = async () => {
   try {
-    /* connect database */
+    // 1️⃣ Connect to MongoDB
     await connectDB();
+    logger.info("📦 Email Worker connected to MongoDB");
 
-    logger.info("📦 Email Worker started");
-
+    // 2️⃣ Start BullMQ Worker
     const worker = new Worker(
       "emailQueue",
-
       async (job) => {
         logger.info(`📨 Job received: ${job.name}`);
 
@@ -47,42 +50,24 @@ const startWorker = async () => {
 
         try {
           const { orderId } = job.data;
+          logger.info(`🔎 Fetching order: ${orderId}`);
 
-          logger.info(`🔎 Finding order: ${orderId}`);
-
-          const order = await Order.findById(orderId).populate(
-            "user",
-            "name email"
-          );
-
+          const order = await Order.findById(orderId).populate("user", "name email");
           if (!order) {
             logger.error(`❌ Order not found: ${orderId}`);
             return;
           }
-
           logger.info(`✅ Order found: ${order.orderNumber}`);
 
-          /* =========================
-             GENERATE INVOICE
-          ========================== */
-
+          // Generate invoice PDF
           logger.info("📄 Generating invoice PDF");
-
           const pdfPath = await generateInvoicePDF(order);
-
-          logger.info(`✅ PDF generated: ${pdfPath}`);
-
           order.invoicePath = pdfPath;
           await order.save();
+          logger.info(`✅ PDF generated and saved: ${pdfPath}`);
 
-          logger.info("💾 Invoice path saved to DB");
-
-          /* =========================
-             SEND EMAIL
-          ========================== */
-
+          // Send email
           logger.info(`📧 Sending email to: ${order.user.email}`);
-
           await sendMail({
             to: order.user.email,
             subject: `Invoice for Order ${order.orderNumber}`,
@@ -94,34 +79,26 @@ const startWorker = async () => {
               },
             ],
           });
-
           logger.info("✅ Email sent successfully");
-        } catch (error) {
-          logger.error(`❌ Worker job error: ${error.message}`);
-          throw error;
+        } catch (err) {
+          logger.error(`❌ Worker job error: ${err.message}`);
+          throw err;
         }
       },
-
       {
-        connection: redisClient, // ✅ USE REDIS CLIENT
+        connection: redisConnection, // ✅ Use ioredis connection
+        concurrency: 5,
       }
     );
 
     /* =========================
        WORKER EVENTS
     ========================== */
+    worker.on("completed", (job) => logger.info(`🎉 Job completed: ${job.id}`));
+    worker.on("failed", (job, err) => logger.error(`💥 Job failed: ${job?.id} | ${err.message}`));
+    worker.on("error", (err) => logger.error(`❌ Worker crashed: ${err.message}`));
 
-    worker.on("completed", (job) => {
-      logger.info(`🎉 Job completed: ${job.id}`);
-    });
-
-    worker.on("failed", (job, err) => {
-      logger.error(`💥 Job failed: ${job?.id} | ${err.message}`);
-    });
-
-    worker.on("error", (err) => {
-      logger.error(`❌ Worker crashed: ${err.message}`);
-    });
+    logger.info("📦 Email Worker started successfully");
   } catch (error) {
     logger.error(`❌ Worker startup failed: ${error.message}`);
     process.exit(1);
@@ -131,18 +108,14 @@ const startWorker = async () => {
 /* =========================
    START
 ========================= */
-
 startWorker();
 
 /* =========================
    GRACEFUL SHUTDOWN
 ========================= */
-
 process.on("SIGINT", async () => {
   logger.info("🛑 Worker shutting down");
-
   await mongoose.disconnect();
-  await redisClient.quit(); // ✅ close redis connection
-
+  await redisConnection.quit();
   process.exit(0);
 });

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../shared/hooks/useCart";
 import { useCreateOrderMutation } from "../../modules/orders/client/orderApi";
-
+import { useDispatch } from "react-redux";
+import { apiSlice } from "../../app/api/apiSlice";
 import useAuth from "../../shared/hooks/useAuth";
 
 import Loader from "../../shared/components/ui/Loader";
@@ -15,16 +16,17 @@ import { Truck, CreditCard, IndianRupee } from "lucide-react";
 import { RAZORPAY_KEY } from "../../shared/utils/constants";
 
 const CheckoutPage = () => {
-
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { items, subtotal, isLoading: cartLoading } = useCart();
+  const { items, subtotal, isLoading: cartLoading ,clearCart} = useCart();
 
   const { user } = useAuth();
 
   const [createOrder] = useCreateOrderMutation();
 
   const [loading, setLoading] = useState(false);
+
 
   const [paymentMethod, setPaymentMethod] = useState("cod");
 
@@ -89,6 +91,9 @@ const CheckoutPage = () => {
       if (paymentMethod === "cod") {
 
         toast.success("Order placed successfully");
+        await clearCart().unwrap();
+        dispatch(apiSlice.util.invalidateTags(["Cart"]));
+        dispatch(apiSlice.util.resetApiState());
 
         navigate("/orders");
         return;
@@ -121,6 +126,8 @@ const CheckoutPage = () => {
         handler: function () {
 
           toast.success("Payment received. Confirming...");
+          dispatch(apiSlice.util.invalidateTags(["Cart"]));
+          dispatch(apiSlice.util.resetApiState());
 
           // webhook will update backend
           navigate("/orders");
@@ -146,7 +153,7 @@ const CheckoutPage = () => {
       toast.error(error?.data?.message || "Checkout failed");
 
     } finally {
-
+      await clearCart().unwrap();
       setLoading(false);
 
     }
@@ -171,7 +178,7 @@ const CheckoutPage = () => {
         >
 
           <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Truck size={20}/> Shipping Address
+            <Truck size={20} /> Shipping Address
           </h2>
 
           <div className="grid grid-cols-2 gap-4">
@@ -248,7 +255,7 @@ const CheckoutPage = () => {
                 onChange={(e) => setPaymentMethod(e.target.value)}
               />
 
-              <IndianRupee size={18}/> Cash on Delivery
+              <IndianRupee size={18} /> Cash on Delivery
 
             </label>
 
@@ -261,7 +268,7 @@ const CheckoutPage = () => {
                 onChange={(e) => setPaymentMethod(e.target.value)}
               />
 
-              <CreditCard size={18}/> Razorpay (UPI / Card)
+              <CreditCard size={18} /> Razorpay (UPI / Card)
 
             </label>
 

@@ -1,41 +1,23 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_URL } from "../../../shared/utils/constants";
+import { apiSlice } from "../../../app/api/apiSlice";
 
-export const clientOrderApi = createApi({
-
-  reducerPath: "orderApi",
-
-  tagTypes: ["Order", "Cart"],
-
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${API_URL}/orders`,
-    credentials: "include",
-
-     prepareHeaders: (headers) => {
-    headers.set("ngrok-skip-browser-warning", "true"); // ✅ FIX
-    return headers;
-  },
-  }),
-
+export const clientOrderApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
 
-    /* CREATE ORDER */
     createOrder: builder.mutation({
       query: (body) => ({
-        url: "/create",
+        url: "/orders/create",
         method: "POST",
-        body
+        body,
       }),
-      invalidatesTags: ["Order", "Cart"]
+      invalidatesTags: ["Order", "Cart"],
     }),
 
-    /* GET USER ORDERS */
     getUserOrders: builder.query({
-      query: () => "/my",
-      providesTags: ["Order"]
-    })
+      query: () => "/orders/my",
+      providesTags: ["Order"],
+    }),
 
-  })
+  }),
 });
 
 export const {

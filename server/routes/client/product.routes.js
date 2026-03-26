@@ -3,6 +3,7 @@ import {
   getProducts,
   getProductById,
 } from "../../controllers/client/product.controller.js";
+import { getCategories,getCategoryCount } from "../../controllers/admin/category.controller.js";
 
 const router = express.Router();
 
@@ -12,8 +13,12 @@ const router = express.Router();
 
 // get all products
 router.get("/", getProducts);
+router.get("/categories", getCategories);
 
+router.get("/categories/count", getCategoryCount);
 // get single product
 router.get("/:id", getProductById);
+
+
 
 export default router;

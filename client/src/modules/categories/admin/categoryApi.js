@@ -1,76 +1,44 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_URL } from "../../../shared/utils/constants";
+import { apiSlice } from "../../../app/api/apiSlice";
 
-export const categoryApi = createApi({
-  reducerPath: "categoryApi",
-
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_URL,
-    credentials: "include",
-
-    prepareHeaders: (headers, { getState }) => {
-       headers.set("ngrok-skip-browser-warning", "true");
-
-      const token = getState().auth.token;
-
-      if (token) {
-        headers.set("authorization", `Bearer ${token}`);
-      }
-
-      return headers;
-    }
-  }),
-
-  tagTypes: ["Category"],
-
+export const adminCategoryApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-
-    /* GET CATEGORIES */
 
     getCategories: builder.query({
       query: () => "/admin/categories",
-      providesTags: ["Category"]
+      providesTags: ["Category"],
     }),
-
-    /* CREATE */
 
     createCategory: builder.mutation({
       query: (data) => ({
         url: "/admin/categories",
         method: "POST",
-        body: data
+        body: data,
       }),
-      invalidatesTags: ["Category"]
+      invalidatesTags: ["Category"],
     }),
-
-    /* UPDATE */
 
     updateCategory: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `/admin/categories/${id}`,
         method: "PUT",
-        body: data
+        body: data,
       }),
-      invalidatesTags: ["Category"]
+      invalidatesTags: ["Category"],
     }),
 
-    /* DELETE */
+    deleteCategory: builder.mutation({
+      query: (id) => ({
+        url: `/admin/categories/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Category"],
+    }),
 
-deleteCategory: builder.mutation({
-  query: (id) => ({
-    url: `/admin/categories/${id}`,
-    method: "DELETE"
   }),
-  invalidatesTags: ["Categories"]
-}),
-
-  })
-
 });
-
 export const {
   useGetCategoriesQuery,
   useCreateCategoryMutation,
   useUpdateCategoryMutation,
   useDeleteCategoryMutation
-} = categoryApi; 
+} = adminCategoryApi; 

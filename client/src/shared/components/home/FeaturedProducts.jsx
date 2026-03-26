@@ -6,19 +6,19 @@ import toast from "react-hot-toast";
 
 export default function FeaturedProducts() {
   const [addToCart, { isLoading: isAdding }] = useAddToCartMutation();
-  const { data, isLoading, isError } = useGetProductsQuery();
+
+  // ✅ Fetch only 5 featured products
+  const { data, isLoading, isError } = useGetProductsQuery({ page: 1, limit: 5, sort: "newest" });
 
   const products = data?.products || [];
 
   const handleAddToCart = async (e, product) => {
-    e.stopPropagation(); // ❗ prevent redirect
-    e.preventDefault();  // ❗ prevent Link navigation
+    e.stopPropagation();
+    e.preventDefault();
 
     const firstVariant = product?.variants?.[0];
 
-    if (!firstVariant) {
-      return toast.error("No variant available");
-    }
+    if (!firstVariant) return toast.error("No variant available");
 
     try {
       await addToCart({
@@ -26,9 +26,7 @@ export default function FeaturedProducts() {
         variantId: firstVariant._id,
         quantity: 1,
       }).unwrap();
-
       toast.success("🛒 Added to cart");
-
     } catch (err) {
       console.error(err);
       toast.error("Failed to add item");
@@ -38,7 +36,7 @@ export default function FeaturedProducts() {
   if (isLoading) {
     return (
       <section className="py-20 text-center">
-        <p className="text-lg animate-pulse">Loading amazing products...</p>
+        <p className="text-lg animate-pulse">Loading featured products...</p>
       </section>
     );
   }
@@ -64,7 +62,7 @@ export default function FeaturedProducts() {
           </h2>
 
           <Link
-            to="/products"
+            to="/category"
             className="text-indigo-600 font-semibold hover:underline"
           >
             View All →
@@ -73,7 +71,6 @@ export default function FeaturedProducts() {
 
         {/* GRID */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-
           {products.map((product) => {
             const firstVariant = product?.variants?.[0];
             const image = firstVariant?.images?.[0]?.url;
@@ -86,12 +83,10 @@ export default function FeaturedProducts() {
               >
                 {/* IMAGE */}
                 <div className="h-40 flex items-center justify-center bg-gray-100 relative">
-
                   <img
                     src={image ? `${API_URL}${image}` : "https://via.placeholder.com/300"}
                     className="h-full object-contain group-hover:scale-105 transition"
                   />
-
                   <span className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded">
                     20% OFF
                   </span>
@@ -99,10 +94,7 @@ export default function FeaturedProducts() {
 
                 {/* DETAILS */}
                 <div className="p-3">
-
-                  <h3 className="text-sm font-medium line-clamp-2">
-                    {product.title}
-                  </h3>
+                  <h3 className="text-sm font-medium line-clamp-2">{product.title}</h3>
 
                   <div className="flex items-center text-xs mt-1">
                     <span className="bg-green-600 text-white px-1 rounded mr-1">4.3</span>
@@ -110,15 +102,10 @@ export default function FeaturedProducts() {
                   </div>
 
                   <div className="flex items-center gap-2 mt-2">
-                    <span className="font-semibold">
-                      ₹{firstVariant?.price}
-                    </span>
-                    <span className="line-through text-gray-400 text-xs">
-                      ₹{firstVariant?.price + 200}
-                    </span>
+                    <span className="font-semibold">₹{firstVariant?.price}</span>
+                    <span className="line-through text-gray-400 text-xs">₹{firstVariant?.price + 200}</span>
                   </div>
 
-                  {/* BUTTON */}
                   <button
                     onClick={(e) => handleAddToCart(e, product)}
                     disabled={isAdding}
@@ -126,7 +113,6 @@ export default function FeaturedProducts() {
                   >
                     {isAdding ? "Adding..." : "Add to Cart"}
                   </button>
-
                 </div>
               </Link>
             );
