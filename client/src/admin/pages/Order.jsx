@@ -7,7 +7,9 @@ import {
 } from "../../modules/orders/admin/orderApi";
 import { format } from "date-fns";
 import SearchBar from "../../shared/components/layout/SearchBar";
+import { API_URL } from "../../shared/utils/constants";
 
+// Color mapping for order status
 const STATUS_COLORS = {
     pending: "bg-yellow-200 text-yellow-800",
     confirmed: "bg-blue-200 text-blue-800",
@@ -16,9 +18,11 @@ const STATUS_COLORS = {
     cancelled: "bg-red-200 text-red-800",
 };
 
+// Color mapping for payment status
 const PAYMENT_COLORS = {
+    pending: "bg-yellow-100 text-yellow-800",
     paid: "bg-green-100 text-green-800",
-    unpaid: "bg-red-100 text-red-800",
+    failed: "bg-red-100 text-red-800",
 };
 
 const Order = () => {
@@ -27,19 +31,19 @@ const Order = () => {
     const limit = 10;
 
     // Filters
-    const [orderStatusFilter, setOrderStatusFilter] = useState("");
+    const [statusFilter, setStatusFilter] = useState("");
     const [paymentStatusFilter, setPaymentStatusFilter] = useState("");
 
     // Search
     const [searchQuery, setSearchQuery] = useState("");
 
-    // RTK Query with parameters: pagination + filters + search
+    // RTK Query: pagination + filters + search
     const { data, isLoading, isError, refetch } = useGetAllOrdersQuery({
         page,
         limit,
         search: searchQuery,
-        orderStatus: orderStatusFilter,
-        paymentStatus: paymentStatusFilter,
+        status: statusFilter,              // matches backend "status"
+        paymentStatus: paymentStatusFilter // matches backend "paymentStatus"
     });
 
     const orders = data?.orders || [];
@@ -50,20 +54,24 @@ const Order = () => {
     const [updatePayment] = useUpdatePaymentStatusMutation();
     const [cancelOrder] = useCancelOrderMutation();
 
+    // Handlers
     const handleStatusChange = async (id, status) => await updateStatus({ id, status });
     const handlePaymentChange = async (id, paymentStatus) => await updatePayment({ id, paymentStatus });
-    // const handleCancelOrder = async (id) => {
-    //     if (confirm("Are you sure you want to cancel this order?")) await cancelOrder(id);
-    // };
+    const handleCancelOrder = async (id) => {
+        if (confirm("Are you sure you want to cancel this order?")) {
+            await cancelOrder(id);
+            refetch();
+        }
+    };
 
     const handlePrev = () => setPage((prev) => Math.max(prev - 1, 1));
     const handleNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
     const handlePageSelect = (pageNum) => setPage(pageNum);
 
-    // Reset page when filters or search change
+    // Reset page on search or filter change
     useEffect(() => {
         setPage(1);
-    }, [searchQuery, orderStatusFilter, paymentStatusFilter]);
+    }, [searchQuery, statusFilter, paymentStatusFilter]);
 
     if (isLoading) return <p className="text-center mt-10">Loading orders...</p>;
     if (isError) return <p className="text-center mt-10 text-red-600">Failed to load orders.</p>;
@@ -80,9 +88,7 @@ const Order = () => {
                     if (!q) return [];
                     const res = await fetch(
                         `/admin/orders/search?q=${encodeURIComponent(q)}&page=1&limit=10`,
-                        {
-                            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-                        }
+                        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
                     );
                     const data = await res.json();
                     return data.orders || [];
@@ -94,8 +100,8 @@ const Order = () => {
             {/* Filters */}
             <div className="flex gap-4 mb-4 mt-2">
                 <select
-                    value={orderStatusFilter}
-                    onChange={(e) => setOrderStatusFilter(e.target.value)}
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
                     className="p-2 border rounded"
                 >
                     <option value="">All Status</option>
@@ -140,6 +146,8 @@ const Order = () => {
                                     <div className="text-gray-500 text-xs">{order.user?.email || "N/A"}</div>
                                 </td>
                                 <td className="p-3 font-semibold">₹{order.totalAmount}</td>
+
+                                {/* Order Status */}
                                 <td className="p-3">
                                     <select
                                         value={order.status}
@@ -151,6 +159,8 @@ const Order = () => {
                                         ))}
                                     </select>
                                 </td>
+
+                                {/* Payment Status */}
                                 <td className="p-3">
                                     <select
                                         value={order.paymentStatus}
@@ -162,16 +172,21 @@ const Order = () => {
                                         ))}
                                     </select>
                                 </td>
+
                                 <td className="p-3">
                                     {order.paymentMethod
                                         ? order.paymentMethod.charAt(0).toUpperCase() + order.paymentMethod.slice(1)
                                         : "N/A"}
                                 </td>
-                                <td className="p-3 text-sm">{format(new Date(order.createdAt), "dd MMM yyyy, hh:mm a")}</td>
+
+                                <td className="p-3 text-sm">
+                                    {format(new Date(order.createdAt), "dd MMM yyyy, hh:mm a")}
+                                </td>
+
                                 <td className="p-3">
                                     {order.invoicePath && (
                                         <a
-                                            href={`/api/admin/orders/${order._id}/invoice`}
+                                            href={`${API_URL}/orders/${order._id}/invoice`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"

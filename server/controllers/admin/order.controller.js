@@ -1,5 +1,5 @@
 import Order from "../../models/order.model.js";
-
+import redisClient from "../../config/redis.js"; 
 // ==============================
 // GET ALL ORDERS (with search + filters)
 // ==============================
@@ -86,16 +86,81 @@ export const getAllOrders = async (req, res) => {
 // ==============================
 // UPDATE ORDER STATUS
 // ==============================
+
 export const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ message: "Order not found" });
 
+    // ✅ Validate input
+    if (!status) {
+      return res.status(400).json({ message: "Status is required" });
+    }
+
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // ✅ Update status
     order.status = status;
     await order.save();
 
-    res.json({ success: true, order });
+    // 🔥 CLEAR REDIS CACHE (IMPORTANT)
+    const keys = await redisClient.keys("orders:*");
+    if (keys.length > 0) {
+      await redisClient.del(keys);
+    }
+
+    await redisClient.del(`order:${order._id}`);
+    await redisClient.del(`userOrders:${order.user}`);
+
+    res.json({
+      success: true,
+      message: "Order status updated successfully",
+      order,
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ==============================
+// UPDATE PAYMENT STATUS
+// ==============================
+export const updatePaymentStatus = async (req, res) => {
+  try {
+    const { paymentStatus } = req.body;
+
+    // ✅ Validate input
+    if (!paymentStatus) {
+      return res.status(400).json({ message: "Payment status is required" });
+    }
+
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // ✅ Update payment status
+    order.paymentStatus = paymentStatus;
+    await order.save();
+
+    // 🔥 CLEAR REDIS CACHE
+    const keys = await redisClient.keys("orders:*");
+    if (keys.length > 0) {
+      await redisClient.del(keys);
+    }
+
+    await redisClient.del(`order:${order._id}`);
+    await redisClient.del(`userOrders:${order.user}`);
+
+    res.json({
+      success: true,
+      message: "Payment status updated successfully",
+      order,
+    });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

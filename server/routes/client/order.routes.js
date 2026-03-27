@@ -4,6 +4,7 @@ import {
   getMyOrders,
   getOrderById,
   cancelOrder,
+  downloadInvoice
 } from "../../controllers/client/order.controller.js";
 
 import { protect } from "../../middleware/auth.middleware.js";
@@ -25,5 +26,7 @@ router.get("/:id", protect, getOrderById);
 
 // cancel order
 router.put("/:id/cancel", protect, cancelOrder);
+
+router.get("/:id/invoice", downloadInvoice);
 
 export default router;

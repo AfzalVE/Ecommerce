@@ -7,6 +7,7 @@ import { useGetDashboardStatsQuery } from "../../modules/dashboard/admin/dashboa
 
 import ProductList from "./ProductList";
 import CategoryList from "../../modules/categories/admin/CategoryList";
+import DashboardGraph from "../components/DashboardGraph";
 
 export default function Dashboard() {
 
@@ -80,6 +81,7 @@ export default function Dashboard() {
       {/* TOGGLE SWITCH */}
 
       <div className="flex gap-4 mb-8">
+        
 
         <button
           onClick={() => setView("products")}
@@ -100,6 +102,15 @@ export default function Dashboard() {
         >
           Categories
         </button>
+         <button
+          onClick={() => setView("graphs")}
+          className={`px-4 py-2 rounded-lg ${view === "graphs"
+            ? "bg-indigo-600 text-white"
+            : "bg-gray-200"
+            }`}
+        >
+          Graph
+        </button>
 
       </div>
 
@@ -111,6 +122,10 @@ export default function Dashboard() {
 
       {view === "categories" && (
         <CategoryList categories={categories} />
+      )}
+
+      {view === "graphs" && (
+        <DashboardGraph products={products} categories={categories} />
       )}
 
     </div>

@@ -13,7 +13,8 @@ export const clientOrderApi = apiSlice.injectEndpoints({
     }),
 
     getUserOrders: builder.query({
-      query: () => "/orders/my",
+      query: ({ page = 1, limit = 10, status = "" } = {}) => 
+        `/orders/my?page=${page}&limit=${limit}${status ? `&status=${status}` : ""}`,
       providesTags: ["Order"],
     }),
 

@@ -8,7 +8,6 @@ import cookieParser from "cookie-parser";
 import clientRoutes from "./routesIndex/client.routes.js";
 import adminRoutes from "./routesIndex/admin.routes.js";
 import webhookRoutes from "./routes/webhook/razorpay.routes.js";
-import { initEmailQueue, addEmailJob } from "./infrastructure/queues/email.queue.js";
 
 
 

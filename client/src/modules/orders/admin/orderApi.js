@@ -32,7 +32,7 @@ export const adminOrderApi = apiSlice.injectEndpoints({
 
     updatePaymentStatus: builder.mutation({
       query: ({ id, paymentStatus }) => ({
-        url: `/admin/orders/${id}/payment`,
+        url: `/admin/orders/${id}/payment-status`,
         method: "PATCH",
         body: { paymentStatus },
       }),

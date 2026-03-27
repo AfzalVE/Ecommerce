@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useGetFilteredProductsQuery } from "../../../modules/products/client/productApi";
 import ProductCard from "./ProductCard";
-import Pagination from "./Pagination";
+import Pagination from "../ui/Pagination";
 
 export default function CategoryProductGrid({ categoryId, setTotal }) {
   const [searchParams] = useSearchParams();

@@ -3,7 +3,7 @@ import Cart from "../models/cart.model.js";
 import Product from "../models/product.model.js";
 import Razorpay from "razorpay";
 import crypto from "crypto";
-import {  addEmailJob } from "../infrastructure/queues/email.queue.js";
+import { addEmailJob } from "../infrastructure/queues/email.queue.js";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -11,13 +11,11 @@ const razorpay = new Razorpay({
 });
 
 export const createOrderService = async ({ user, body }) => {
-
   const { address, paymentMethod } = body;
 
   /* =========================
      VALIDATION
   ========================== */
-
   if (!address || !address.name || !address.phone) {
     throw new Error("Invalid shipping address");
   }
@@ -29,11 +27,7 @@ export const createOrderService = async ({ user, body }) => {
   /* =========================
      GET USER CART
   ========================== */
-
-  const cart = await Cart
-    .findOne({ user: user._id })
-    .populate("items.product");
-
+  const cart = await Cart.findOne({ user: user._id }).populate("items.product");
   if (!cart || cart.items.length === 0) {
     throw new Error("Cart is empty");
   }
@@ -41,21 +35,16 @@ export const createOrderService = async ({ user, body }) => {
   /* =========================
      CALCULATE TOTALS
   ========================== */
-
   let totalAmount = 0;
   let discountAmount = 0;
 
   const processedItems = cart.items.map((item) => {
-
     const product = item.product;
-
     const variant = product.variants.find(
       v => v._id.toString() === item.variantId.toString()
     );
 
-    if (!variant) {
-      throw new Error("Product variant not found");
-    }
+    if (!variant) throw new Error("Product variant not found");
 
     const price = variant.price;
     const discount = variant.discount || 0;
@@ -76,25 +65,21 @@ export const createOrderService = async ({ user, body }) => {
       finalPrice,
       image: variant.images?.[0]?.url
     };
-
   });
 
   const finalAmount = totalAmount - discountAmount;
-
-  if (finalAmount <= 0) {
-    throw new Error("Invalid order amount");
-  }
+  if (finalAmount <= 0) throw new Error("Invalid order amount");
 
   /* =========================
      GENERATE ORDER NUMBER
   ========================== */
-
   const orderNumber = "ORD-" + crypto.randomBytes(6).toString("hex");
 
   /* =========================
      CREATE ORDER
+     COD: paymentStatus=pending, status=pending
+     RAZORPAY: paymentStatus=pending, status=pending
   ========================== */
-
   const order = await Order.create({
     orderNumber,
     user: user._id,
@@ -104,30 +89,23 @@ export const createOrderService = async ({ user, body }) => {
     finalAmount,
     address,
     paymentMethod,
-
-    // ✅ FIXED (important)
     paymentStatus: "pending",
-    status: "pending"
+    status: "confirmed"
   });
 
   /* =========================
      CLEAR CART
   ========================== */
-
   cart.items = [];
   await cart.save();
 
   /* =========================
      COD FLOW
   ========================== */
-
   if (paymentMethod === "cod") {
-
-    // ✅ Reduce stock immediately
+    // Reduce stock immediately
     for (const item of processedItems) {
-
       const product = await Product.findById(item.productId);
-
       if (!product) continue;
 
       const variant = product.variants.find(
@@ -135,17 +113,13 @@ export const createOrderService = async ({ user, body }) => {
       );
 
       if (variant) {
-        console.log(`Reducing stock for product ${product.title}, variant ${variant.color} ${variant.stock} by ${item.quantity}`);
         variant.stock = Math.max(0, variant.stock - item.quantity);
       }
-
       await product.save();
     }
-    console.log(order._id);
-    console.log("Stock reduced for COD order");
-    await addEmailJob({
-      orderId: order._id
-    });
+
+    // Send email
+    await addEmailJob({ orderId: order._id });
 
     return {
       success: true,
@@ -156,22 +130,15 @@ export const createOrderService = async ({ user, body }) => {
   /* =========================
      RAZORPAY FLOW
   ========================== */
-
   let razorpayOrder;
-
   try {
-
     razorpayOrder = await razorpay.orders.create({
       amount: Math.round(finalAmount * 100),
       currency: "INR",
       receipt: orderNumber,
-      notes: {
-        orderId: order._id.toString()
-      }
+      notes: { orderId: order._id.toString() }
     });
-
   } catch (error) {
-
     console.error("Razorpay Error:", error);
     throw new Error("Payment gateway error");
   }
