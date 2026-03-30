@@ -1,5 +1,5 @@
 import { apiSlice } from "../../app/api/apiSlice";
-import { setAuth, logout } from "./authSlice";
+import { setAuth, logout, setLoading } from "./authSlice";
 
 export const authApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -10,15 +10,18 @@ export const authApi = apiSlice.injectEndpoints({
         url: "/auth/login",
         method: "POST",
         body: data,
+        credentials: "include", // ✅ ensure cookie is stored
       }),
 
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
 
+          // ✅ backend already sets cookie
           dispatch(setAuth(data.user));
+
         } catch (err) {
-          console.error(err);
+          console.error("Login error:", err);
         }
       },
     }),
@@ -29,6 +32,7 @@ export const authApi = apiSlice.injectEndpoints({
         url: "/auth/register",
         method: "POST",
         body: data,
+        credentials: "include",
       }),
     }),
 
@@ -37,6 +41,7 @@ export const authApi = apiSlice.injectEndpoints({
       query: () => ({
         url: "/auth/logout",
         method: "POST",
+        credentials: "include",
       }),
 
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
@@ -45,26 +50,33 @@ export const authApi = apiSlice.injectEndpoints({
 
           dispatch(logout());
 
-          // 🔥 CRITICAL: clear ALL cached data (cart bug fix)
+          // ✅ clear RTK cache (important)
           dispatch(apiSlice.util.resetApiState());
 
         } catch (err) {
-          console.error(err);
+          console.error("Logout error:", err);
         }
       },
     }),
 
-    // 👤 CURRENT USER
+    // 👤 CURRENT USER (VERY IMPORTANT FOR REFRESH)
     getCurrentUser: builder.query({
-      query: () => "/auth/me",
+      query: () => ({
+        url: "/auth/me",
+        credentials: "include",
+      }),
 
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
+          dispatch(setLoading());
+
           const { data } = await queryFulfilled;
 
           dispatch(setAuth(data.user));
-        } catch {
-          // silently fail (user not logged in)
+
+        } catch (err) {
+          // ❌ user not logged in OR cookie missing
+          dispatch(logout());
         }
       },
     }),
@@ -95,6 +107,7 @@ export const authApi = apiSlice.injectEndpoints({
     }),
 
   }),
+
   overrideExisting: false,
 });
 

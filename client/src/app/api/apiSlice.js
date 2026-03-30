@@ -11,10 +11,10 @@ export const apiSlice = createApi({
     prepareHeaders: (headers, { getState }) => {
       headers.set("ngrok-skip-browser-warning", "true");
 
-      const token = getState()?.auth?.token;
-      if (token) {
-        headers.set("authorization", `Bearer ${token}`);
-      }
+      // const token = getState()?.auth?.token;
+      // if (token) {
+      //   headers.set("authorization", `Bearer ${token}`);
+      // }
 
       return headers;
     },
