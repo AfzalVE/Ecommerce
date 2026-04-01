@@ -2,7 +2,6 @@ import Order from "../models/order.model.js";
 import Cart from "../models/cart.model.js";
 import Product from "../models/product.model.js";
 import Razorpay from "razorpay";
-import crypto from "crypto";
 import { addEmailJob } from "../infrastructure/queues/email.queue.js";
 
 const razorpay = new Razorpay({
@@ -10,6 +9,9 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
+/* ==============================
+   CREATE ORDER SERVICE
+============================== */
 export const createOrderService = async ({ user, body }) => {
   const { address, paymentMethod } = body;
 
@@ -25,9 +27,26 @@ export const createOrderService = async ({ user, body }) => {
   }
 
   /* =========================
+     PREVENT DUPLICATE ORDERS
+  ========================== */
+  const recentOrder = await Order.findOne({
+    user: user._id,
+    paymentStatus: "pending",
+    createdAt: { $gt: new Date(Date.now() - 2 * 60 * 1000) } // last 2 min
+  });
+
+  if (recentOrder && paymentMethod === "razorpay") {
+    return {
+      success: true,
+      order: recentOrder
+    };
+  }
+
+  /* =========================
      GET USER CART
   ========================== */
   const cart = await Cart.findOne({ user: user._id }).populate("items.product");
+
   if (!cart || cart.items.length === 0) {
     throw new Error("Cart is empty");
   }
@@ -40,8 +59,9 @@ export const createOrderService = async ({ user, body }) => {
 
   const processedItems = cart.items.map((item) => {
     const product = item.product;
+
     const variant = product.variants.find(
-      v => v._id.toString() === item.variantId.toString()
+      (v) => v._id.toString() === item.variantId.toString()
     );
 
     if (!variant) throw new Error("Product variant not found");
@@ -68,17 +88,20 @@ export const createOrderService = async ({ user, body }) => {
   });
 
   const finalAmount = totalAmount - discountAmount;
-  if (finalAmount <= 0) throw new Error("Invalid order amount");
+
+  if (finalAmount <= 0) {
+    throw new Error("Invalid order amount");
+  }
 
   /* =========================
-     GENERATE ORDER NUMBER
+     GENERATE UNIQUE ORDER NUMBER
   ========================== */
-  const orderNumber = "ORD-" + crypto.randomBytes(6).toString("hex");
+  const orderNumber = `ORD-${Date.now()}-${Math.floor(
+    Math.random() * 1000
+  )}`;
 
   /* =========================
      CREATE ORDER
-     COD: paymentStatus=pending, status=pending
-     RAZORPAY: paymentStatus=pending, status=pending
   ========================== */
   const order = await Order.create({
     orderNumber,
@@ -90,7 +113,9 @@ export const createOrderService = async ({ user, body }) => {
     address,
     paymentMethod,
     paymentStatus: "pending",
-    status: "confirmed"
+
+    // ✅ FIXED STATUS LOGIC
+    status: paymentMethod === "cod" ? "confirmed" : "pending"
   });
 
   /* =========================
@@ -103,22 +128,22 @@ export const createOrderService = async ({ user, body }) => {
      COD FLOW
   ========================== */
   if (paymentMethod === "cod") {
-    // Reduce stock immediately
     for (const item of processedItems) {
       const product = await Product.findById(item.productId);
       if (!product) continue;
 
       const variant = product.variants.find(
-        v => v._id.toString() === item.variantId.toString()
+        (v) => v._id.toString() === item.variantId.toString()
       );
 
       if (variant) {
         variant.stock = Math.max(0, variant.stock - item.quantity);
       }
+
       await product.save();
     }
 
-    // Send email
+    // Send confirmation email
     await addEmailJob({ orderId: order._id });
 
     return {
@@ -131,18 +156,26 @@ export const createOrderService = async ({ user, body }) => {
      RAZORPAY FLOW
   ========================== */
   let razorpayOrder;
+
   try {
     razorpayOrder = await razorpay.orders.create({
-      amount: Math.round(finalAmount * 100),
+      amount: Math.round(finalAmount * 100), // paise
       currency: "INR",
       receipt: orderNumber,
-      notes: { orderId: order._id.toString() }
+
+      // 🔥 IMPORTANT (used in webhook)
+      notes: {
+        orderId: order._id.toString()
+      }
     });
   } catch (error) {
     console.error("Razorpay Error:", error);
     throw new Error("Payment gateway error");
   }
 
+  /* =========================
+     SAVE RAZORPAY ORDER ID
+  ========================== */
   order.razorpayOrderId = razorpayOrder.id;
   await order.save();
 

@@ -24,9 +24,19 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 /* =========================
    REDIS CONNECTION (ioredis)
 ========================= */
-const redisConnection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379", {
-  maxRetriesPerRequest: null, // ✅ Required by BullMQ
-});
+  const options = {
+    host: process.env.REDIS_HOST,
+    port: Number(process.env.REDIS_PORT),
+    username: process.env.REDIS_USERNAME || "default", // <-- important
+    password: process.env.REDIS_PASSWORD,
+    maxRetriesPerRequest: null,
+  };
+
+  if (process.env.REDIS_TLS === "true") {
+    options.ssl = {};
+  }
+
+const redisConnection = new IORedis(options);
 
 /* =========================
    START WORKER

@@ -25,7 +25,7 @@ router.get("/my", protect, getMyOrders);
 router.get("/:id", protect, getOrderById);
 
 // cancel order
-router.put("/:id/cancel", protect, cancelOrder);
+router.patch("/:id/cancel",protect, cancelOrder);
 
 router.get("/:id/invoice", downloadInvoice);
 

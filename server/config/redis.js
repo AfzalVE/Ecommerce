@@ -2,7 +2,13 @@ import { createClient } from "redis";
 import logger from "../utils/logger.js";
 
 const redisClient = createClient({
-  url: process.env.REDIS_URL || "redis://localhost:6379",
+  socket: {
+    host: process.env.REDIS_HOST,
+    port: Number(process.env.REDIS_PORT),
+    ssl: process.env.REDIS_TLS === "true" ? {} : undefined,
+  },
+  username: process.env.REDIS_USERNAME || "default", // <-- important
+  password: process.env.REDIS_PASSWORD,
 });
 
 redisClient.on("error", (err) => {
@@ -10,7 +16,7 @@ redisClient.on("error", (err) => {
 });
 
 redisClient.on("connect", () => {
-  logger.info("✅ Redis connected");
+  logger.info("✅ Redis connected (redis v4 client)");
 });
 
 await redisClient.connect();

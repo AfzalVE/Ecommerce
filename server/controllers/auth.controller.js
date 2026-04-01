@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
-
+                           
 /* REGISTER USER */
 
 export const registerUser = async (req, res) => {
