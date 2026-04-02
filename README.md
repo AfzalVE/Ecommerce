@@ -47,6 +47,8 @@ The system supports a full **E-commerce workflow**, including product management
 * Express.js
 * MongoDB
 * Mongoose
+* Worker js
+* Redis
 
 ### Authentication
 
@@ -63,39 +65,10 @@ The system supports a full **E-commerce workflow**, including product management
 
 ### PDF Generation
 
-* PDFKit / Puppeteer
+* PDFKit 
 
 ---
 
-# 📂 Project Structure
-
-```
-project-root
-│
-├── server
-│   ├── controllers
-│   ├── models
-│   ├── routes
-│   ├── middleware
-│   ├── services
-│   ├── utils
-│   ├── config
-│   ├── uploads
-│   └── server.js
-│
-├── client
-│   ├── src
-│   │   ├── components
-│   │   ├── pages
-│   │   ├── features
-│   │   ├── hooks
-│   │   ├── services
-│   │   └── utils
-│   │
-│   └── package.json
-│
-└── README.md
-```
 
 This modular architecture ensures **maintainability, scalability, and separation of concerns**.
 
@@ -116,7 +89,6 @@ Authentication is implemented using **JWT (JSON Web Tokens)**.
 
 * Add to Cart
 * Place Order
-* View Profile
 * View Order History
 
 ### Admin Only Routes
@@ -124,7 +96,11 @@ Authentication is implemented using **JWT (JSON Web Tokens)**.
 * Create Product
 * Update Product
 * Delete Product
+* Create Category
+* Update Category
+* Delete Category
 * Manage Orders
+* Profit and Revenue Charts
 
 Role-based access control is implemented using a **`role` field** in the user schema.
 
