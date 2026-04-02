@@ -19,14 +19,11 @@ const CheckoutPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { items, subtotal, isLoading: cartLoading ,clearCart} = useCart();
-
+  const { items, subtotal, isLoading: cartLoading, clearCart } = useCart();
   const { user } = useAuth();
 
   const [createOrder] = useCreateOrderMutation();
-
   const [loading, setLoading] = useState(false);
-
 
   const [paymentMethod, setPaymentMethod] = useState("cod");
 
@@ -38,21 +35,19 @@ const CheckoutPage = () => {
     city: "",
     state: "",
     postalCode: "",
-    country: "India"
+    country: "India",
   });
 
   const handleChange = (e) => {
     setAddress({
       ...address,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   /* LOAD RAZORPAY SCRIPT */
-
   const loadRazorpay = () =>
     new Promise((resolve) => {
-
       if (window.Razorpay) {
         resolve(true);
         return;
@@ -68,39 +63,36 @@ const CheckoutPage = () => {
     });
 
   /* CHECKOUT */
-
   const handleCheckout = async (e) => {
-
     e.preventDefault();
 
     if (items.length === 0) {
       return toast.error("Cart is empty");
     }
 
-    try {
+    if (loading) return; // ✅ prevent double click
 
+    try {
       setLoading(true);
 
       const order = await createOrder({
         address,
-        paymentMethod
+        paymentMethod,
       }).unwrap();
 
       /* COD ORDER */
-
       if (paymentMethod === "cod") {
-
         toast.success("Order placed successfully");
+
         await clearCart().unwrap();
-        dispatch(apiSlice.util.invalidateTags(["Cart"]));
-        dispatch(apiSlice.util.resetApiState());
+
+        dispatch(apiSlice.util.invalidateTags(["Cart", "Order"]));
 
         navigate("/orders");
         return;
       }
 
       /* RAZORPAY PAYMENT */
-
       const razorpayLoaded = await loadRazorpay();
 
       if (!razorpayLoaded) {
@@ -109,55 +101,44 @@ const CheckoutPage = () => {
       }
 
       const options = {
-
         key: RAZORPAY_KEY,
-
         amount: order.razorpayOrder.amount,
-
         currency: "INR",
-
         name: "ShopSphere",
-
         description: "Secure Payment",
-
         order_id: order.razorpayOrder.id,
 
-        // ✅ IMPORTANT: NO verification here
+        // webhook handles backend update
         handler: function () {
-
           toast.success("Payment received. Confirming...");
-          dispatch(apiSlice.util.invalidateTags(["Cart"]));
-          dispatch(apiSlice.util.resetApiState());
 
-          // webhook will update backend
+          // ❌ do NOT clear cart here
+          // ❌ do NOT reset API
+
+          dispatch(apiSlice.util.invalidateTags(["Order"]));
+
           navigate("/orders");
         },
 
         prefill: {
           name: address.name,
           email: address.email,
-          contact: address.phone
+          contact: address.phone,
         },
 
         theme: {
-          color: "#6366f1"
-        }
+          color: "#6366f1",
+        },
       };
 
       const paymentObject = new window.Razorpay(options);
-
       paymentObject.open();
 
     } catch (error) {
-
       toast.error(error?.data?.message || "Checkout failed");
-
     } finally {
-      await clearCart().unwrap();
-      setLoading(false);
-
+      setLoading(false); // ✅ ONLY this remains
     }
-
   };
 
   if (cartLoading) {
@@ -165,13 +146,10 @@ const CheckoutPage = () => {
   }
 
   return (
-
     <div className="min-h-screen bg-gray-50 py-12">
-
       <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10">
 
         {/* ADDRESS FORM */}
-
         <form
           onSubmit={handleCheckout}
           className="bg-white p-8 rounded-xl shadow"
@@ -183,93 +161,37 @@ const CheckoutPage = () => {
 
           <div className="grid grid-cols-2 gap-4">
 
-            <Input
-              name="name"
-              label="Full Name"
-              value={address.name}
-              onChange={handleChange}
-              required
-            />
-
-            <Input
-              name="email"
-              label="Delivery Email"
-              type="email"
-              value={address.email}
-              onChange={handleChange}
-              required
-            />
-
-            <Input
-              name="phone"
-              label="Phone"
-              value={address.phone}
-              onChange={handleChange}
-              required
-            />
-
-            <Input
-              name="street"
-              label="Street"
-              value={address.street}
-              onChange={handleChange}
-              required
-            />
-
-            <Input
-              name="postalCode"
-              label="Postal Code"
-              value={address.postalCode}
-              onChange={handleChange}
-              required
-            />
-
-            <Input
-              name="city"
-              label="City"
-              value={address.city}
-              onChange={handleChange}
-              required
-            />
-
-            <Input
-              name="state"
-              label="State"
-              value={address.state}
-              onChange={handleChange}
-              required
-            />
+            <Input name="name" label="Full Name" value={address.name} onChange={handleChange} required />
+            <Input name="email" label="Delivery Email" type="email" value={address.email} onChange={handleChange} required />
+            <Input name="phone" label="Phone" value={address.phone} onChange={handleChange} required />
+            <Input name="street" label="Street" value={address.street} onChange={handleChange} required />
+            <Input name="postalCode" label="Postal Code" value={address.postalCode} onChange={handleChange} required />
+            <Input name="city" label="City" value={address.city} onChange={handleChange} required />
+            <Input name="state" label="State" value={address.state} onChange={handleChange} required />
 
           </div>
 
           {/* PAYMENT METHOD */}
-
           <div className="mt-8 space-y-3">
 
             <label className="flex items-center gap-3">
-
               <input
                 type="radio"
                 value="cod"
                 checked={paymentMethod === "cod"}
                 onChange={(e) => setPaymentMethod(e.target.value)}
               />
-
               <IndianRupee size={18} /> Cash on Delivery
-
             </label>
 
             <label className="flex items-center gap-3">
-
               <input
                 type="radio"
                 value="razorpay"
                 checked={paymentMethod === "razorpay"}
                 onChange={(e) => setPaymentMethod(e.target.value)}
               />
-
               <CreditCard size={18} /> Razorpay (UPI / Card)
-
             </label>
 
           </div>
@@ -279,17 +201,14 @@ const CheckoutPage = () => {
             disabled={loading}
             className="mt-6 w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold"
           >
-
             {loading
               ? "Processing..."
               : `Place Order ₹${subtotal.toFixed(2)}`}
-
           </button>
 
         </form>
 
         {/* ORDER SUMMARY */}
-
         <div className="bg-white p-8 rounded-xl shadow">
 
           <h3 className="text-xl font-semibold mb-6">
@@ -300,19 +219,9 @@ const CheckoutPage = () => {
 
             {items.map((item) => (
 
-              <div
-                key={item._id}
-                className="flex justify-between text-sm"
-              >
-
-                <span>
-                  {item.name} × {item.quantity}
-                </span>
-
-                <span>
-                  ₹{(item.finalPrice * item.quantity).toFixed(2)}
-                </span>
-
+              <div key={item._id} className="flex justify-between text-sm">
+                <span>{item.name} × {item.quantity}</span>
+                <span>₹{(item.finalPrice * item.quantity).toFixed(2)}</span>
               </div>
 
             ))}
@@ -336,11 +245,8 @@ const CheckoutPage = () => {
         </div>
 
       </div>
-
     </div>
-
   );
-
 };
 
 export default CheckoutPage;

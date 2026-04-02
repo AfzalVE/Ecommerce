@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 import Navbar from "../shared/components/layout/Navbar";
 import Footer from "../shared/components/layout/Footer";
-
+import ChatInterface from "../shared/components/chat/ChatInterface";
 import ClientRoutes from "./ClientRoutes";
 import AdminRoutes from "./AdminRoutes";
 
@@ -35,6 +35,7 @@ function Layout() {
       </main>
 
       {!hideFooter && <Footer />}
+      <ChatInterface />
     </div>
   );
 }

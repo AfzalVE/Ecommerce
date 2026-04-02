@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useGetUserOrdersQuery } from "../../modules/orders/client/orderApi";
+import {
+  useGetUserOrdersQuery,
+  useCancelOrderMutation
+} from "../../modules/orders/client/orderApi";
 import Loader from "../../shared/components/ui/Loader";
+import Pagination from "../../shared/components/ui/Pagination";
+import { API_URL } from "../../shared/utils/constants";
+
 import {
   Package,
   Clock,
@@ -11,8 +17,6 @@ import {
   CreditCard,
   Download
 } from "lucide-react";
-import Pagination from "../../shared/components/ui/Pagination";
-import { API_URL } from "../../shared/utils/constants";
 
 /* ==============================
    STATUS CONFIG
@@ -28,7 +32,9 @@ const statusConfig = {
 const paymentConfig = {
   pending: { label: "Pending", color: "orange" },
   paid: { label: "Paid", color: "green" },
-  failed: { label: "Failed", color: "red" }
+  failed: { label: "Failed", color: "red" },
+  refund_failed:{label:"Refund Failed",color:"red"},
+  refunded: { label: "Refunded", color: "purple" } // ✅ NEW
 };
 
 const statusColors = {
@@ -42,13 +48,16 @@ const statusColors = {
 /* ==============================
    ORDER CARD
 ============================== */
-const OrderCard = ({ order }) => {
+const OrderCard = ({ order, onCancel }) => {
   const [expanded, setExpanded] = useState(false);
 
   const status = statusConfig[order.status] || statusConfig.pending;
   const payment = paymentConfig[order.paymentStatus] || paymentConfig.pending;
 
   const StatusIcon = status.icon;
+
+  const canCancel =
+    !["delivered", "cancelled"].includes(order.status);
 
   const formatDate = (date) =>
     new Date(date).toLocaleString("en-IN", {
@@ -61,6 +70,7 @@ const OrderCard = ({ order }) => {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border hover:shadow-xl transition overflow-hidden">
+
       {/* HEADER */}
       <div className="p-6 flex justify-between items-center border-b">
         <div>
@@ -74,17 +84,13 @@ const OrderCard = ({ order }) => {
 
         <div className="flex flex-col items-end gap-2">
           {/* Order Status */}
-          <div
-            className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${statusColors[status.color]}`}
-          >
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${statusColors[status.color]}`}>
             <StatusIcon size={14} />
             {status.label}
           </div>
 
           {/* Payment Status */}
-          <div
-            className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${statusColors[payment.color]}`}
-          >
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${statusColors[payment.color]}`}>
             <CreditCard size={12} />
             {payment.label}
           </div>
@@ -115,7 +121,18 @@ const OrderCard = ({ order }) => {
         </div>
 
         <div className="flex gap-3 items-center">
-          {/* Invoice Download */}
+
+          {/* ✅ CANCEL BUTTON */}
+          {canCancel && (
+            <button
+              onClick={() => onCancel(order._id)}
+              className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            >
+              Cancel
+            </button>
+          )}
+
+          {/* INVOICE */}
           {order.invoicePath && (
             <a
               href={`${API_URL}/orders/${order._id}/invoice`}
@@ -128,6 +145,7 @@ const OrderCard = ({ order }) => {
             </a>
           )}
 
+          {/* TOGGLE */}
           <button
             onClick={() => setExpanded(!expanded)}
             className="flex items-center gap-2 text-indigo-600 font-medium hover:underline"
@@ -144,6 +162,7 @@ const OrderCard = ({ order }) => {
       {/* DETAILS */}
       {expanded && (
         <div className="bg-gray-50 px-6 py-6 space-y-6">
+
           {/* ITEMS */}
           <div>
             <h4 className="font-semibold mb-4 text-gray-700">
@@ -152,10 +171,7 @@ const OrderCard = ({ order }) => {
 
             <div className="space-y-4">
               {order.items.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-4 bg-white p-4 rounded-xl border"
-                >
+                <div key={idx} className="flex items-center gap-4 bg-white p-4 rounded-xl border">
                   <img
                     src={`${API_URL}${item.image}`}
                     alt={item.name}
@@ -188,13 +204,19 @@ const OrderCard = ({ order }) => {
             <div className="text-sm text-gray-600 space-y-1">
               <p className="font-medium">{order.address?.name}</p>
               <p>{order.address?.street}</p>
-              <p>
-                {order.address?.city}, {order.address?.state}
-              </p>
+              <p>{order.address?.city}, {order.address?.state}</p>
               <p>{order.address?.postalCode}</p>
               <p>{order.address?.phone}</p>
             </div>
           </div>
+
+          {/* ✅ REFUND UI */}
+          {order.paymentStatus === "refunded" && (
+            <div className="bg-purple-50 text-purple-700 p-3 rounded-lg text-sm font-medium">
+              💸 This order has been refunded
+            </div>
+          )}
+
         </div>
       )}
     </div>
@@ -206,6 +228,7 @@ const OrderCard = ({ order }) => {
 ============================== */
 const OrdersPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [cancelOrder] = useCancelOrderMutation();
 
   const page = parseInt(searchParams.get("page") || "1");
   const statusFilter = searchParams.get("status") || "";
@@ -219,6 +242,20 @@ const OrdersPage = () => {
   const orders = data?.orders || [];
   const totalPages = data?.totalPages || 1;
 
+  /* ================= CANCEL ================= */
+  const handleCancel = async (orderId) => {
+    const confirm = window.confirm("Are you sure you want to cancel?");
+    if (!confirm) return;
+
+    try {
+      await cancelOrder(orderId).unwrap();
+      alert("Order cancelled successfully");
+    } catch {
+      alert("Cancel failed");
+    }
+  };
+
+  /* ================= FILTER ================= */
   const changeStatusFilter = (status) => {
     const params = new URLSearchParams(searchParams);
 
@@ -230,23 +267,26 @@ const OrdersPage = () => {
   };
 
   if (isLoading) return <Loader className="py-20" />;
-  if (error)
+
+  if (error) {
     return (
       <div className="text-center py-20 text-red-500">
         Failed to load orders
       </div>
     );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-5xl mx-auto">
+
         {/* HEADER */}
         <div className="flex items-center gap-3 mb-6">
           <Package className="w-10 h-10 text-indigo-600" />
           <div>
             <h1 className="text-3xl font-bold">My Orders</h1>
             <p className="text-gray-500">
-              Track your purchases & download invoices
+              Track orders, cancel & view refunds
             </p>
           </div>
         </div>
@@ -287,7 +327,11 @@ const OrdersPage = () => {
           <>
             <div className="space-y-6">
               {orders.map((order) => (
-                <OrderCard key={order._id} order={order} />
+                <OrderCard
+                  key={order._id}
+                  order={order}
+                  onCancel={handleCancel}
+                />
               ))}
             </div>
 
