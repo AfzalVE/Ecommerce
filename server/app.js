@@ -4,7 +4,7 @@ import morgan from "morgan";
 import compression from "compression";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-
+import chatRoutes from "./routes/chat.routes.js"
 import clientRoutes from "./routesIndex/client.routes.js";
 import adminRoutes from "./routesIndex/admin.routes.js";
 import webhookRoutes from "./routes/webhook/razorpay.routes.js";
@@ -28,6 +28,7 @@ app.use(express.json());
 app.use(cors({
   origin: [
     "http://localhost:5173",
+    "http://localhost:5174",
     "https://postcanonical-joy-nonradiating.ngrok-free.dev",
     "https://l78993p4-5173.inc1.devtunnels.ms",
     "https://ecommerce-self-mu-45.vercel.app"
@@ -59,5 +60,5 @@ app.get("/", (req, res) => {
 
 app.use("/api", clientRoutes);
 app.use("/api/admin", adminRoutes);
-
+app.use("/api/chat", chatRoutes);
 export default app;

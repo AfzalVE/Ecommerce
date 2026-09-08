@@ -21,10 +21,17 @@ const startServer = async () => {
     app.listen(PORT, () => {
       logger.info(`Server started on port ${PORT}`);
     });
-  } catch (error) {
-    logger.error("Server startup failed: " + error.message);
-    process.exit(1);
-  }
+  } // ...existing code...
+catch (error) {
+  logger.error("Server startup failed", {
+    message: error.message,
+    stack: error.stack,
+    response: error.response?.data,
+    status: error.response?.status
+  });
+  process.exit(1);
+}
+// ...existing code...
 };
 
 startServer();
