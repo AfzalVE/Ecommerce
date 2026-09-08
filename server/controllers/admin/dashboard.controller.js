@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import Order from "../../models/Order.model.js";
-import Product from "../../models/Product.model.js";
-import Category from "../../models/Category.model.js";
+import Order from "../../models/order.model.js";
+import Product from "../../models/product.model.js";
+import Category from "../../models/category.model.js";
 import logger from "../../utils/logger.js";
 import { getOrSetCache } from "../../utils/cache.js";
 

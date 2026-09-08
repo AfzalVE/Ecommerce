@@ -1,7 +1,7 @@
 // services/payment.service.js
 import crypto from "crypto";
 import Order from "../models/order.model.js";
-import { addEmailJob } from "../queues/email.queue.js";
+import { addEmailJob } from "../infrastructure/queues/email.queue.js";
 
 export const razorpayWebhook = async (req, res) => {
   const secret = process.env.RAZORPAY_KEY_SECRET;
